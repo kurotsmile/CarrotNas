@@ -163,7 +163,7 @@ $external = array(
     'js-jquery' => '<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>',
     'js-jquery-datatables' => '<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" defer></script>',
     'js-highlightjs' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>',
-    'js-lightgallery' => '<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/lightgallery.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/video/lg-video.umd.min.js"></script>',
+    'js-lightgallery' => '<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/lightgallery.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/autoplay/lg-autoplay.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/comment/lg-comment.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/fullscreen/lg-fullscreen.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/hash/lg-hash.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/pager/lg-pager.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/rotate/lg-rotate.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/share/lg-share.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/thumbnail/lg-thumbnail.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/video/lg-video.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/zoom/lg-zoom.umd.min.js"></script>',
     'pre-jsdelivr' => '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>',
     'pre-cloudflare' => '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin/><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>'
 );
@@ -2246,7 +2246,7 @@ $all_files_size = 0;
                             'preload' => false,
                             'controls' => true
                         )
-                    )));
+                    ), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG));
                 }
                 if (function_exists('posix_getpwuid') && function_exists('posix_getgrgid')) {
                     $owner = posix_getpwuid(fileowner($path . '/' . $f));
@@ -2274,7 +2274,7 @@ $all_files_size = 0;
                         <div class="filename">
                             <?php
                             if ($is_lightgallery_item): ?>
-                                <a href="<?php echo fm_enc($file_url) ?>" class="js-lightgallery-item" data-sub-html="<?php echo fm_enc($f) ?>" <?php echo $lightgallery_video ? 'data-video="' . $lightgallery_video_data . '"' : ''; ?> title="<?php echo fm_enc($f) ?>">
+                                <a href="<?php echo fm_enc($file_url) ?>" class="js-lightgallery-item" data-src="<?php echo fm_enc($file_url) ?>" data-download-url="<?php echo fm_enc($file_url) ?>" data-thumb="<?php echo fm_enc($file_url) ?>" data-sub-html="<?php echo fm_enc($f) ?>" <?php echo $lightgallery_video ? 'data-video="' . $lightgallery_video_data . '"' : ''; ?> title="<?php echo fm_enc($f) ?>">
                                 <?php elseif (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
                                 <?php $imagePreview = fm_enc($file_url); ?>
                                 <a href="<?php echo $filelink ?>" data-preview-image="<?php echo $imagePreview ?>" title="<?php echo fm_enc($f) ?>">
@@ -5173,11 +5173,60 @@ function fm_show_header_login()
                 });
 
                 if (typeof lightGallery === 'function' && $('.js-lightgallery-item').length) {
+                    var lightGalleryPlugins = [
+                        window.lgAutoplay,
+                        window.lgComment,
+                        window.lgFullscreen,
+                        window.lgHash,
+                        window.lgPager,
+                        window.lgRotate,
+                        window.lgShare,
+                        window.lgThumbnail,
+                        window.lgVideo,
+                        window.lgZoom
+                    ].filter(Boolean);
                     lightGallery(document.getElementById('main-table'), {
                         selector: '.js-lightgallery-item',
-                        plugins: (typeof lgVideo === 'undefined') ? [] : [lgVideo],
-                        download: false,
-                        videojs: false
+                        plugins: lightGalleryPlugins,
+                        speed: 500,
+                        mode: 'lg-slide',
+                        loop: true,
+                        counter: true,
+                        controls: true,
+                        keyPress: true,
+                        mousewheel: true,
+                        closable: true,
+                        download: true,
+                        share: true,
+                        fullScreen: true,
+                        zoom: true,
+                        actualSize: true,
+                        scale: 1,
+                        enableDrag: true,
+                        enableSwipe: true,
+                        thumbnail: true,
+                        animateThumb: true,
+                        allowMediaOverlap: true,
+                        toggleThumb: true,
+                        pager: true,
+                        rotate: true,
+                        flipHorizontal: true,
+                        flipVertical: true,
+                        autoplay: true,
+                        pause: 5000,
+                        progressBar: true,
+                        hash: true,
+                        commentBox: false,
+                        videojs: false,
+                        autoplayFirstVideo: false,
+                        autoplayVideoOnSlide: false,
+                        gotoNextSlideOnVideoEnd: true,
+                        mobileSettings: {
+                            controls: true,
+                            showCloseIcon: true,
+                            download: true,
+                            rotate: true
+                        }
                     });
                 }
 
