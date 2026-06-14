@@ -156,12 +156,14 @@ $external = array(
     'css-dropzone' => '<link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css" rel="stylesheet">',
     'css-font-awesome' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">',
     'css-highlightjs' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/' . $highlightjs_style . '.min.css">',
+    'css-lightgallery' => '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/css/lightgallery-bundle.min.css">',
     'js-ace' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.js"></script>',
     'js-bootstrap' => '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>',
     'js-dropzone' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>',
     'js-jquery' => '<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>',
     'js-jquery-datatables' => '<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" defer></script>',
     'js-highlightjs' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>',
+    'js-lightgallery' => '<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/lightgallery.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/video/lg-video.umd.min.js"></script>',
     'pre-jsdelivr' => '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>',
     'pre-cloudflare' => '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin/><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>'
 );
@@ -1359,6 +1361,12 @@ if (!empty($folders)) {
     natcasesort($folders);
 }
 
+$is_lightgallery_mode = isset($_GET['media']) && $_GET['media'] === '1';
+if ($is_lightgallery_mode) {
+    $folders = array();
+    $files = array_values(array_filter($files, 'fm_is_lightgallery_media'));
+}
+
 // upload form
 if (isset($_GET['upload']) && !FM_READONLY) {
     fm_show_header(); // HEADER
@@ -2217,8 +2225,29 @@ $all_files_size = 0;
                 $filesize_raw = fm_get_size($path . '/' . $f);
                 $filesize = fm_get_filesize($filesize_raw);
                 $filelink = '?p=' . urlencode(FM_PATH) . '&amp;view=' . urlencode($f);
+                $file_url = FM_ROOT_URL . (FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $f;
                 $all_files_size += $filesize_raw;
                 $perms = substr(decoct(fileperms($path . '/' . $f)), -4);
+                $is_lightgallery_item = $is_lightgallery_mode && fm_is_lightgallery_media($f);
+                $lightgallery_ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                $lightgallery_video = $is_lightgallery_item && in_array($lightgallery_ext, array('mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v'));
+                $lightgallery_video_data = '';
+                if ($lightgallery_video) {
+                    $lightgallery_mime = fm_get_file_mimes($lightgallery_ext);
+                    if (is_array($lightgallery_mime)) {
+                        $lightgallery_mime = reset($lightgallery_mime);
+                    }
+                    $lightgallery_video_data = fm_enc(json_encode(array(
+                        'source' => array(array(
+                            'src' => $file_url,
+                            'type' => $lightgallery_mime
+                        )),
+                        'attributes' => array(
+                            'preload' => false,
+                            'controls' => true
+                        )
+                    )));
+                }
                 if (function_exists('posix_getpwuid') && function_exists('posix_getgrgid')) {
                     $owner = posix_getpwuid(fileowner($path . '/' . $f));
                     $group = posix_getgrgid(filegroup($path . '/' . $f));
@@ -2244,8 +2273,10 @@ $all_files_size = 0;
                     <td data-sort=<?php echo fm_enc($f) ?>>
                         <div class="filename">
                             <?php
-                            if (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
-                                <?php $imagePreview = fm_enc(FM_ROOT_URL . (FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $f); ?>
+                            if ($is_lightgallery_item): ?>
+                                <a href="<?php echo fm_enc($file_url) ?>" class="js-lightgallery-item" data-sub-html="<?php echo fm_enc($f) ?>" <?php echo $lightgallery_video ? 'data-video="' . $lightgallery_video_data . '"' : ''; ?> title="<?php echo fm_enc($f) ?>">
+                                <?php elseif (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
+                                <?php $imagePreview = fm_enc($file_url); ?>
                                 <a href="<?php echo $filelink ?>" data-preview-image="<?php echo $imagePreview ?>" title="<?php echo fm_enc($f) ?>">
                                 <?php else: ?>
                                     <a href="<?php echo $filelink ?>" title="<?php echo $f ?>">
@@ -3098,6 +3129,25 @@ function fm_get_video_exts()
 }
 
 /**
+ * Get browser/lightGallery friendly media extensions.
+ * @return array
+ */
+function fm_get_lightgallery_media_exts()
+{
+    return array('jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v');
+}
+
+/**
+ * Check whether file can be opened by lightGallery.
+ * @param string $file
+ * @return bool
+ */
+function fm_is_lightgallery_media($file)
+{
+    return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), fm_get_lightgallery_media_exts());
+}
+
+/**
  * Get audio files extensions
  * @return array
  */
@@ -3692,6 +3742,7 @@ function fm_show_nav_path($path)
 {
     global $lang, $sticky_navbar, $editFile;
     $isStickyNavBar = $sticky_navbar ? 'fixed-top' : '';
+    $is_lightgallery_mode = isset($_GET['media']) && $_GET['media'] === '1';
 ?>
     <nav class="navbar navbar-expand-lg mb-4 main-nav <?php echo $isStickyNavBar ?> bg-body-tertiary" data-bs-theme="<?php echo FM_THEME; ?>">
         <a class="navbar-brand"> <?php echo lng('AppTitle') ?> </a>
@@ -3743,6 +3794,13 @@ function fm_show_nav_path($path)
                             <a title="<?php echo lng('NewItem') ?>" class="nav-link" href="#createNewItem" data-bs-toggle="modal" data-bs-target="#createNewItem"><i class="fa fa-plus-square"></i> <?php echo lng('NewItem') ?></a>
                         </li>
                     <?php endif; ?>
+                    <li class="nav-item">
+                        <?php if ($is_lightgallery_mode): ?>
+                            <a title="<?php echo lng('AllItems') ?>" class="nav-link active" href="?p=<?php echo urlencode(FM_PATH) ?>"><i class="fa fa-list"></i> <?php echo lng('AllItems') ?></a>
+                        <?php else: ?>
+                            <a title="lightGallery" class="nav-link" href="?p=<?php echo urlencode(FM_PATH) ?>&amp;media=1"><i class="fa fa-picture-o"></i> lightGallery</a>
+                        <?php endif; ?>
+                    </li>
                     <?php if (FM_USE_AUTH): ?>
                         <li class="nav-item avatar dropdown">
                             <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-5" data-bs-toggle="dropdown" aria-expanded="false">
@@ -3976,6 +4034,7 @@ function fm_show_header_login()
         <?php print_external('pre-cloudflare'); ?>
         <?php print_external('css-bootstrap'); ?>
         <?php print_external('css-font-awesome'); ?>
+        <?php print_external('css-lightgallery'); ?>
         <?php if (FM_USE_HIGHLIGHTJS && isset($_GET['view'])): ?>
             <?php print_external('css-highlightjs'); ?>
         <?php endif; ?>
@@ -4793,6 +4852,7 @@ function fm_show_header_login()
         <?php print_external('js-jquery'); ?>
         <?php print_external('js-bootstrap'); ?>
         <?php print_external('js-jquery-datatables'); ?>
+        <?php print_external('js-lightgallery'); ?>
         <?php if (FM_USE_HIGHLIGHTJS && isset($_GET['view'])): ?>
             <?php print_external('js-highlightjs'); ?>
             <script>
@@ -5111,6 +5171,15 @@ function fm_show_header_login()
                         orderable: false
                     }]
                 });
+
+                if (typeof lightGallery === 'function' && $('.js-lightgallery-item').length) {
+                    lightGallery(document.getElementById('main-table'), {
+                        selector: '.js-lightgallery-item',
+                        plugins: (typeof lgVideo === 'undefined') ? [] : [lgVideo],
+                        download: false,
+                        videojs: false
+                    });
+                }
 
                 // filter table
                 $('#search-addon').on('keyup', function() {
@@ -5467,6 +5536,7 @@ function fm_show_header_login()
         // English Language
         $tr['en']['AppName']        = 'Tiny File Manager';
         $tr['en']['AppTitle']       = 'File Manager';
+        $tr['en']['AllItems']       = 'All Items';
         $tr['en']['Login']          = 'Sign in';
         $tr['en']['Username']       = 'Username';
         $tr['en']['Password']       = 'Password';
