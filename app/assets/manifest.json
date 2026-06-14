@@ -1,0 +1,39 @@
+{
+  "app/resources/css/app.css": {
+    "file": "app/assets/app-D4n1ggXL.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
+    "src": "app/resources/css/app.css",
+    "isEntry": true,
+    "assets": [
+      "app/assets/SourceCodePro-4BnFP_XJ.woff2",
+      "app/assets/WorkSans-BO7JhOCw.woff2",
+      "app/assets/fa-brands-400-BP5tdqmh.woff2",
+      "app/assets/fa-solid-900-DRAAbZTg.woff2"
+    ]
+  },
+  "app/resources/fonts/SourceCodePro.woff2": {
+    "file": "app/assets/SourceCodePro-4BnFP_XJ.woff2",
+    "src": "app/resources/fonts/SourceCodePro.woff2"
+  },
+  "app/resources/fonts/WorkSans.woff2": {
+    "file": "app/assets/WorkSans-BO7JhOCw.woff2",
+    "src": "app/resources/fonts/WorkSans.woff2"
+  },
+  "app/resources/js/app.js": {
+    "file": "app/assets/app-Bg0sHslX.js",
+    "name": "app",
+    "src": "app/resources/js/app.js",
+    "isEntry": true
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2": {
+    "file": "app/assets/fa-brands-400-BP5tdqmh.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2"
+  },
+  "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2": {
+    "file": "app/assets/fa-solid-900-DRAAbZTg.woff2",
+    "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2"
+  }
+}
