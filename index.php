@@ -1365,6 +1365,7 @@ $is_lightgallery_mode = isset($_GET['media']) && $_GET['media'] === '1';
 if ($is_lightgallery_mode) {
     $files = array_values(array_filter($files, 'fm_is_lightgallery_media'));
 }
+$has_lightgallery_video = $is_lightgallery_mode && count(array_filter($files, 'fm_is_lightgallery_video')) > 0;
 
 // upload form
 if (isset($_GET['upload']) && !FM_READONLY) {
@@ -2272,7 +2273,7 @@ $all_files_size = 0;
                         <div class="filename">
                             <?php
                             if ($is_lightgallery_item): ?>
-                                <a href="<?php echo $lightgallery_video ? '#' : fm_enc($file_url) ?>" class="js-lightgallery-item" <?php echo $lightgallery_video ? '' : 'data-src="' . fm_enc($file_url) . '"'; ?> data-download-url="<?php echo fm_enc($file_url) ?>" data-poster="<?php echo fm_enc($lightgallery_thumb) ?>" <?php echo $lightgallery_video ? "data-video='" . $lightgallery_video_data . "'" : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
+                                <a href="<?php echo $lightgallery_video ? '#' : fm_enc($file_url) ?>" class="js-lightgallery-item" data-download-url="<?php echo fm_enc($file_url) ?>" <?php echo $lightgallery_video ? 'data-poster="' . fm_enc($lightgallery_thumb) . '" data-video=\'' . $lightgallery_video_data . '\'' : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
                                     <img src="<?php echo fm_enc($lightgallery_thumb) ?>" alt="<?php echo fm_enc($f) ?>" class="lg-inline-thumb" loading="lazy">
                                 <?php elseif (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
                                 <?php $imagePreview = fm_enc($file_url); ?>
@@ -3144,6 +3145,16 @@ function fm_get_lightgallery_media_exts()
 function fm_is_lightgallery_media($file)
 {
     return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), fm_get_lightgallery_media_exts());
+}
+
+/**
+ * Check whether file is a lightGallery HTML5 video.
+ * @param string $file
+ * @return bool
+ */
+function fm_is_lightgallery_video($file)
+{
+    return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), array('mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v'));
 }
 
 /**
@@ -4878,6 +4889,7 @@ function fm_show_header_login()
      */
     function fm_show_footer()
     {
+        global $has_lightgallery_video;
         ?>
         </div>
         <?php print_external('js-jquery'); ?>
@@ -5212,7 +5224,7 @@ function fm_show_header_login()
                         window.lgRotate,
                         window.lgShare,
                         window.lgThumbnail,
-                        window.lgVideo,
+                        <?php echo !empty($has_lightgallery_video) ? 'window.lgVideo,' : ''; ?>
                         window.lgZoom
                     ].filter(Boolean);
                     lightGallery(document.getElementById('main-table'), {
