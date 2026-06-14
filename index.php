@@ -2231,21 +2231,20 @@ $all_files_size = 0;
                 $lightgallery_thumb = $file_url;
                 if ($lightgallery_video) {
                     $lightgallery_thumb = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22%3E%3Crect width=%22320%22 height=%22180%22 fill=%22%23212529%22/%3E%3Ccircle cx=%22160%22 cy=%2290%22 r=%2238%22 fill=%22%23ffffff%22 fill-opacity=%22.9%22/%3E%3Cpath d=%22M149 68v44l38-22z%22 fill=%22%23212529%22/%3E%3C/svg%3E';
-                    $lightgallery_mime = fm_get_file_mimes($lightgallery_ext);
-                    if (is_array($lightgallery_mime)) {
-                        $lightgallery_mime = reset($lightgallery_mime);
-                    }
-                    $lightgallery_video_data = fm_enc(json_encode(array(
+                    $lightgallery_mime = fm_get_lightgallery_video_mime($lightgallery_ext);
+                    $lightgallery_video_data = htmlspecialchars(json_encode(array(
                         'source' => array(array(
                             'src' => $file_url,
                             'type' => $lightgallery_mime
                         )),
+                        'tracks' => array(),
                         'attributes' => array(
                             'preload' => false,
+                            'playsinline' => true,
                             'controls' => true,
                             'poster' => $lightgallery_thumb
                         )
-                    ), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG));
+                    ), JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8');
                 }
                 if (function_exists('posix_getpwuid') && function_exists('posix_getgrgid')) {
                     $owner = posix_getpwuid(fileowner($path . '/' . $f));
@@ -2273,7 +2272,8 @@ $all_files_size = 0;
                         <div class="filename">
                             <?php
                             if ($is_lightgallery_item): ?>
-                                <a href="<?php echo fm_enc($file_url) ?>" class="js-lightgallery-item" data-src="<?php echo fm_enc($file_url) ?>" data-download-url="<?php echo fm_enc($file_url) ?>" data-thumb="<?php echo fm_enc($lightgallery_thumb) ?>" <?php echo $lightgallery_video ? 'data-video="' . $lightgallery_video_data . '"' : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
+                                <a href="<?php echo $lightgallery_video ? '#' : fm_enc($file_url) ?>" class="js-lightgallery-item" <?php echo $lightgallery_video ? '' : 'data-src="' . fm_enc($file_url) . '"'; ?> data-download-url="<?php echo fm_enc($file_url) ?>" data-thumb="<?php echo fm_enc($lightgallery_thumb) ?>" data-poster="<?php echo fm_enc($lightgallery_thumb) ?>" <?php echo $lightgallery_video ? "data-video='" . $lightgallery_video_data . "'" : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
+                                    <img src="<?php echo fm_enc($lightgallery_thumb) ?>" alt="" class="lg-hidden-thumb" loading="lazy">
                                 <?php elseif (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
                                 <?php $imagePreview = fm_enc($file_url); ?>
                                 <a href="<?php echo $filelink ?>" data-preview-image="<?php echo $imagePreview ?>" title="<?php echo fm_enc($f) ?>">
@@ -3144,6 +3144,24 @@ function fm_get_lightgallery_media_exts()
 function fm_is_lightgallery_media($file)
 {
     return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), fm_get_lightgallery_media_exts());
+}
+
+/**
+ * Get MIME type for lightGallery HTML5 video sources.
+ * @param string $ext
+ * @return string
+ */
+function fm_get_lightgallery_video_mime($ext)
+{
+    $mimes = array(
+        'mp4' => 'video/mp4',
+        'm4v' => 'video/mp4',
+        'webm' => 'video/webm',
+        'ogg' => 'video/ogg',
+        'ogv' => 'video/ogg',
+        'mov' => 'video/quicktime'
+    );
+    return isset($mimes[$ext]) ? $mimes[$ext] : 'video/mp4';
 }
 
 /**
@@ -4064,6 +4082,10 @@ function fm_show_header_login()
 
             .lg-pager-cont,
             .lg-pager-outer {
+                display: none !important;
+            }
+
+            .lg-hidden-thumb {
                 display: none !important;
             }
 
@@ -5209,6 +5231,7 @@ function fm_show_header_login()
                         enableDrag: true,
                         enableSwipe: true,
                         thumbnail: true,
+                        exThumbImage: 'data-thumb',
                         animateThumb: true,
                         allowMediaOverlap: true,
                         toggleThumb: true,
