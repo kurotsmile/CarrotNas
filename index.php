@@ -2244,7 +2244,7 @@ $all_files_size = 0;
                             'controls' => true,
                             'poster' => $lightgallery_thumb
                         )
-                    ), JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8');
+                    ), JSON_UNESCAPED_SLASHES), ENT_NOQUOTES, 'UTF-8');
                 }
                 if (function_exists('posix_getpwuid') && function_exists('posix_getgrgid')) {
                     $owner = posix_getpwuid(fileowner($path . '/' . $f));
@@ -2272,8 +2272,8 @@ $all_files_size = 0;
                         <div class="filename">
                             <?php
                             if ($is_lightgallery_item): ?>
-                                <a href="<?php echo $lightgallery_video ? '#' : fm_enc($file_url) ?>" class="js-lightgallery-item" <?php echo $lightgallery_video ? '' : 'data-src="' . fm_enc($file_url) . '"'; ?> data-download-url="<?php echo fm_enc($file_url) ?>" data-thumb="<?php echo fm_enc($lightgallery_thumb) ?>" data-poster="<?php echo fm_enc($lightgallery_thumb) ?>" <?php echo $lightgallery_video ? "data-video='" . $lightgallery_video_data . "'" : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
-                                    <img src="<?php echo fm_enc($lightgallery_thumb) ?>" alt="" class="lg-hidden-thumb" loading="lazy">
+                                <a href="<?php echo $lightgallery_video ? '#' : fm_enc($file_url) ?>" class="js-lightgallery-item" <?php echo $lightgallery_video ? '' : 'data-src="' . fm_enc($file_url) . '"'; ?> data-download-url="<?php echo fm_enc($file_url) ?>" data-poster="<?php echo fm_enc($lightgallery_thumb) ?>" <?php echo $lightgallery_video ? "data-video='" . $lightgallery_video_data . "'" : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
+                                    <img src="<?php echo fm_enc($lightgallery_thumb) ?>" alt="<?php echo fm_enc($f) ?>" class="lg-inline-thumb" loading="lazy">
                                 <?php elseif (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
                                 <?php $imagePreview = fm_enc($file_url); ?>
                                 <a href="<?php echo $filelink ?>" data-preview-image="<?php echo $imagePreview ?>" title="<?php echo fm_enc($f) ?>">
@@ -4085,8 +4085,12 @@ function fm_show_header_login()
                 display: none !important;
             }
 
-            .lg-hidden-thumb {
-                display: none !important;
+            .lg-inline-thumb {
+                height: 1px;
+                opacity: 0;
+                pointer-events: none;
+                position: absolute;
+                width: 1px;
             }
 
             body.navbar-fixed {
@@ -5226,12 +5230,12 @@ function fm_show_header_login()
                         share: true,
                         fullScreen: true,
                         zoom: true,
+                        zoomFromOrigin: false,
                         actualSize: true,
                         scale: 1,
                         enableDrag: true,
                         enableSwipe: true,
                         thumbnail: true,
-                        exThumbImage: 'data-thumb',
                         animateThumb: true,
                         allowMediaOverlap: true,
                         toggleThumb: true,
