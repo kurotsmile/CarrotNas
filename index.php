@@ -163,7 +163,7 @@ $external = array(
     'js-jquery' => '<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>',
     'js-jquery-datatables' => '<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" defer></script>',
     'js-highlightjs' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>',
-    'js-lightgallery' => '<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/lightgallery.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/autoplay/lg-autoplay.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/comment/lg-comment.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/fullscreen/lg-fullscreen.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/hash/lg-hash.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/pager/lg-pager.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/rotate/lg-rotate.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/share/lg-share.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/thumbnail/lg-thumbnail.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/video/lg-video.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/zoom/lg-zoom.umd.min.js"></script>',
+    'js-lightgallery' => '<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/lightgallery.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/autoplay/lg-autoplay.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/comment/lg-comment.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/fullscreen/lg-fullscreen.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/hash/lg-hash.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/rotate/lg-rotate.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/share/lg-share.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/thumbnail/lg-thumbnail.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/video/lg-video.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/zoom/lg-zoom.umd.min.js"></script>',
     'pre-jsdelivr' => '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>',
     'pre-cloudflare' => '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin/><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>'
 );
@@ -1363,7 +1363,6 @@ if (!empty($folders)) {
 
 $is_lightgallery_mode = isset($_GET['media']) && $_GET['media'] === '1';
 if ($is_lightgallery_mode) {
-    $folders = array();
     $files = array_values(array_filter($files, 'fm_is_lightgallery_media'));
 }
 
@@ -1674,9 +1673,6 @@ if (isset($_GET['help'])) {
             <div class="card-body">
                 <div class="row">
                     <div class="col-xs-12 col-sm-6">
-                        <p>
-                        <h3><a href="https://github.com/prasathmani/tinyfilemanager" target="_blank" class="app-v-title"> Tiny File Manager <?php echo VERSION; ?></a></h3>
-                        </p>
                         <p>Author: PRAŚATH MANİ</p>
                         <p>Mail Us: <a href="mailto:ccpprogrammers@gmail.com">ccpprogrammers [at] gmail [dot] com</a> </p>
                     </div>
@@ -2141,7 +2137,7 @@ $all_files_size = 0;
             ?>
                 <tr><?php if (!FM_READONLY): ?>
                         <td class="nosort"></td><?php endif; ?>
-                    <td class="border-0" data-sort><a href="?p=<?php echo urlencode($parent) ?>"><i class="fa fa-chevron-circle-left go-back"></i> ..</a></td>
+                    <td class="border-0" data-sort><a href="?p=<?php echo urlencode($parent) ?><?php echo $is_lightgallery_mode ? '&amp;media=1' : ''; ?>"><i class="fa fa-chevron-circle-left go-back"></i> ..</a></td>
                     <td class="border-0" data-order></td>
                     <td class="border-0" data-order></td>
                     <td class="border-0"></td>
@@ -2187,7 +2183,7 @@ $all_files_size = 0;
                     <?php endif; ?>
                     <td data-sort=<?php echo fm_convert_win(fm_enc($f)) ?>>
                         <div class="filename">
-                            <a href="?p=<?php echo urlencode(trim(FM_PATH . '/' . $f, '/')) ?>"><i class="<?php echo $img ?>"></i> <?php echo fm_convert_win(fm_enc($f)) ?></a>
+                            <a href="?p=<?php echo urlencode(trim(FM_PATH . '/' . $f, '/')) ?><?php echo $is_lightgallery_mode ? '&amp;media=1' : ''; ?>"><i class="<?php echo $img ?>"></i> <?php echo fm_convert_win(fm_enc($f)) ?></a>
                             <?php echo ($is_link ? ' &rarr; <i>' . readlink($path . '/' . $f) . '</i>' : '') ?>
                         </div>
                     </td>
@@ -2225,14 +2221,16 @@ $all_files_size = 0;
                 $filesize_raw = fm_get_size($path . '/' . $f);
                 $filesize = fm_get_filesize($filesize_raw);
                 $filelink = '?p=' . urlencode(FM_PATH) . '&amp;view=' . urlencode($f);
-                $file_url = FM_ROOT_URL . (FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $f;
+                $file_url = FM_ROOT_URL . (FM_PATH != '' ? '/' . implode('/', array_map('rawurlencode', explode('/', FM_PATH))) : '') . '/' . rawurlencode($f);
                 $all_files_size += $filesize_raw;
                 $perms = substr(decoct(fileperms($path . '/' . $f)), -4);
                 $is_lightgallery_item = $is_lightgallery_mode && fm_is_lightgallery_media($f);
                 $lightgallery_ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
                 $lightgallery_video = $is_lightgallery_item && in_array($lightgallery_ext, array('mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v'));
                 $lightgallery_video_data = '';
+                $lightgallery_thumb = $file_url;
                 if ($lightgallery_video) {
+                    $lightgallery_thumb = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22%3E%3Crect width=%22320%22 height=%22180%22 fill=%22%23212529%22/%3E%3Ccircle cx=%22160%22 cy=%2290%22 r=%2238%22 fill=%22%23ffffff%22 fill-opacity=%22.9%22/%3E%3Cpath d=%22M149 68v44l38-22z%22 fill=%22%23212529%22/%3E%3C/svg%3E';
                     $lightgallery_mime = fm_get_file_mimes($lightgallery_ext);
                     if (is_array($lightgallery_mime)) {
                         $lightgallery_mime = reset($lightgallery_mime);
@@ -2244,7 +2242,8 @@ $all_files_size = 0;
                         )),
                         'attributes' => array(
                             'preload' => false,
-                            'controls' => true
+                            'controls' => true,
+                            'poster' => $lightgallery_thumb
                         )
                     ), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG));
                 }
@@ -2274,7 +2273,7 @@ $all_files_size = 0;
                         <div class="filename">
                             <?php
                             if ($is_lightgallery_item): ?>
-                                <a href="<?php echo fm_enc($file_url) ?>" class="js-lightgallery-item" data-src="<?php echo fm_enc($file_url) ?>" data-download-url="<?php echo fm_enc($file_url) ?>" data-thumb="<?php echo fm_enc($file_url) ?>" data-sub-html="<?php echo fm_enc($f) ?>" <?php echo $lightgallery_video ? 'data-video="' . $lightgallery_video_data . '"' : ''; ?> title="<?php echo fm_enc($f) ?>">
+                                <a href="<?php echo fm_enc($file_url) ?>" class="js-lightgallery-item" data-src="<?php echo fm_enc($file_url) ?>" data-download-url="<?php echo fm_enc($file_url) ?>" data-thumb="<?php echo fm_enc($lightgallery_thumb) ?>" <?php echo $lightgallery_video ? 'data-video="' . $lightgallery_video_data . '"' : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
                                 <?php elseif (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
                                 <?php $imagePreview = fm_enc($file_url); ?>
                                 <a href="<?php echo $filelink ?>" data-preview-image="<?php echo $imagePreview ?>" title="<?php echo fm_enc($f) ?>">
@@ -2350,9 +2349,9 @@ $all_files_size = 0;
                     <a href="javascript:document.getElementById('a-copy').click();" class="btn btn-small btn-outline-primary btn-2"><i class="fa fa-files-o"></i> <?php echo lng('Copy') ?> </a>
                 </div>
             </div>
-            <div class="col-3 d-none d-sm-block"><a href="https://tinyfilemanager.github.io" target="_blank" class="float-right text-muted">Tiny File Manager <?php echo VERSION; ?></a></div>
+            <div class="col-3 d-none d-sm-block"></div>
         <?php else: ?>
-            <div class="col-12"><a href="https://tinyfilemanager.github.io" target="_blank" class="float-right text-muted">Tiny File Manager <?php echo VERSION; ?></a></div>
+            <div class="col-12"></div>
         <?php endif; ?>
     </div>
 </form>
@@ -3753,7 +3752,8 @@ function fm_show_nav_path($path)
 
             <?php
             $path = fm_clean_path($path);
-            $root_url = "<a href='?p='><i class='fa fa-home' aria-hidden='true' title='" . FM_ROOT_PATH . "'></i></a>";
+            $media_url = $is_lightgallery_mode ? '&amp;media=1' : '';
+            $root_url = "<a href='?p={$media_url}'><i class='fa fa-home' aria-hidden='true' title='" . FM_ROOT_PATH . "'></i></a>";
             $sep = '<i class="bread-crumb"> / </i>';
             if ($path != '') {
                 $exploded = explode('/', $path);
@@ -3763,7 +3763,7 @@ function fm_show_nav_path($path)
                 for ($i = 0; $i < $count; $i++) {
                     $parent = trim($parent . '/' . $exploded[$i], '/');
                     $parent_enc = urlencode($parent);
-                    $array[] = "<a href='?p={$parent_enc}'>" . fm_enc(fm_convert_win($exploded[$i])) . "</a>";
+                    $array[] = "<a href='?p={$parent_enc}{$media_url}'>" . fm_enc(fm_convert_win($exploded[$i])) . "</a>";
                 }
                 $root_url .= $sep . implode($sep, $array);
             }
@@ -4060,6 +4060,11 @@ function fm_show_header_login()
                 font-size: 15px;
                 color: #222;
                 background: #F7F7F7;
+            }
+
+            .lg-pager-cont,
+            .lg-pager-outer {
+                display: none !important;
             }
 
             body.navbar-fixed {
@@ -5178,7 +5183,6 @@ function fm_show_header_login()
                         window.lgComment,
                         window.lgFullscreen,
                         window.lgHash,
-                        window.lgPager,
                         window.lgRotate,
                         window.lgShare,
                         window.lgThumbnail,
@@ -5208,7 +5212,7 @@ function fm_show_header_login()
                         animateThumb: true,
                         allowMediaOverlap: true,
                         toggleThumb: true,
-                        pager: true,
+                        pager: false,
                         rotate: true,
                         flipHorizontal: true,
                         flipVertical: true,
