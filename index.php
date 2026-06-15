@@ -3098,6 +3098,22 @@ function fm_enc($text)
 }
 
 /**
+ * Prints favicon links for browsers, iOS, Android, and PWA installs.
+ */
+function fm_print_favicon_links($favicon_path)
+{
+    if ($favicon_path) {
+        echo '<link rel="icon" href="' . fm_enc($favicon_path) . '" type="image/png">' . PHP_EOL;
+    }
+    echo '<link rel="icon" type="image/x-icon" href="favicon/favicon.ico">' . PHP_EOL;
+    echo '<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">' . PHP_EOL;
+    echo '<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">' . PHP_EOL;
+    echo '<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">' . PHP_EOL;
+    echo '<link rel="manifest" href="favicon/site.webmanifest">' . PHP_EOL;
+    echo '<meta name="theme-color" content="#ffffff">' . PHP_EOL;
+}
+
+/**
  * Prevent XSS attacks
  * @param string $text
  * @return string
@@ -4144,9 +4160,7 @@ function fm_show_header_login()
         <meta name="author" content="CCP Programmers">
         <meta name="robots" content="noindex, nofollow">
         <meta name="googlebot" content="noindex">
-        <?php if ($favicon_path) {
-            echo '<link rel="icon" href="' . fm_enc($favicon_path) . '" type="image/png">';
-        } ?>
+        <?php fm_print_favicon_links($favicon_path); ?>
         <title><?php echo fm_enc(APP_TITLE) ?></title>
         <?php print_external('pre-jsdelivr'); ?>
         <?php print_external('css-bootstrap'); ?>
@@ -4309,9 +4323,7 @@ function fm_show_header_login()
         <meta name="author" content="CCP Programmers">
         <meta name="robots" content="noindex, nofollow">
         <meta name="googlebot" content="noindex">
-        <?php if ($favicon_path) {
-            echo '<link rel="icon" href="' . fm_enc($favicon_path) . '" type="image/png">';
-        } ?>
+        <?php fm_print_favicon_links($favicon_path); ?>
         <title><?php echo fm_enc(APP_TITLE) ?> | <?php echo fm_enc(isset($_GET['view']) ? $_GET['view'] : ((isset($_GET['edit'])) ? $_GET['edit'] : APP_TITLE)); ?></title>
         <?php print_external('pre-jsdelivr'); ?>
         <?php print_external('pre-cloudflare'); ?>
