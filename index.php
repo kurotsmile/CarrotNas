@@ -326,6 +326,11 @@ if ($ip_ruleset != 'OFF') {
     }
 }
 
+// Public API: upload image from another site without login/token.
+if (isset($_GET['api']) && $_GET['api'] === 'upload_image') {
+    fm_api_upload_image($root_path, FM_ROOT_URL);
+}
+
 // Checking if the user is logged in or not. If not, it will show the login form.
 if ($use_auth) {
     if (isset($_SESSION[FM_SESSION_ID]['logged'], $auth_users[$_SESSION[FM_SESSION_ID]['logged']])) {
@@ -1699,6 +1704,65 @@ if (isset($_GET['help'])) {
                         <textarea class="form-control" rows="2" readonly id="js-pwd-result"></textarea>
                     </div>
                 </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6><i class="fa fa-cloud-upload"></i> Public image upload API</h6>
+                        <p class="mb-2">Endpoint: <code>POST <?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image</code></p>
+                        <p class="mb-2">No login, token, or password is required. Images are saved into a folder named by <code>type_media</code>, for example <code>avatar</code>, <code>product</code>, or <code>news</code>.</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>file</code></td>
+                                        <td>No</td>
+                                        <td>Multipart image file. Use this or <code>image_url</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>image_url</code></td>
+                                        <td>No</td>
+                                        <td>Remote image URL. Use this or <code>file</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>type_media</code></td>
+                                        <td>No</td>
+                                        <td>Folder/type for classification. Default is <code>images</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>filename</code></td>
+                                        <td>No</td>
+                                        <td>Custom output filename. The image extension is detected automatically.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mb-1">Upload local image:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
+  -F "type_media=avatar" \
+  -F "file=@/path/to/photo.jpg"</code></pre>
+                        <p class="mb-1">Upload image from URL:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
+  -F "type_media=product" \
+  -F "image_url=https://example.com/image.png"</code></pre>
+                        <p class="mb-1">Successful response:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>{
+  "status": "success",
+  "type_media": "avatar",
+  "filename": "photo.jpg",
+  "path": "avatar/photo.jpg",
+  "url": "<?php echo fm_enc(rtrim(FM_ROOT_URL, '/')); ?>/avatar/photo.jpg",
+  "mime": "image/jpeg",
+  "size": 12345
+}</code></pre>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -2579,6 +2643,200 @@ function fm_get_mime_type($file_path)
     } else {
         return '--';
     }
+}
+
+/**
+ * Return JSON response for public API.
+ * @param array $payload
+ * @param int $status
+ */
+function fm_api_json($payload, $status = 200)
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+/**
+ * Public image upload API.
+ * @param string $root_path
+ * @param string $root_url
+ */
+function fm_api_upload_image($root_path, $root_url)
+{
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Use POST method'
+        ), 405);
+    }
+
+    $root_path = rtrim(str_replace('\\', '/', $root_path), '/');
+    if (!is_dir($root_path) || !is_writable($root_path)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Root path is not writable'
+        ), 500);
+    }
+
+    $type_media = isset($_POST['type_media']) ? $_POST['type_media'] : (isset($_POST['type']) ? $_POST['type'] : 'images');
+    $type_media = fm_api_clean_segment($type_media, 'images');
+    $target_dir = $root_path . '/' . $type_media;
+
+    if (!is_dir($target_dir) && !fm_mkdir($target_dir, true)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot create type_media folder'
+        ), 500);
+    }
+
+    $tmp_file = '';
+    $original_name = '';
+
+    if (isset($_FILES['file']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
+        if (!empty($_FILES['file']['error'])) {
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Upload error code: ' . $_FILES['file']['error']
+            ), 400);
+        }
+        $tmp_file = $_FILES['file']['tmp_name'];
+        $original_name = $_FILES['file']['name'];
+    } elseif (!empty($_POST['image_url']) || !empty($_POST['url'])) {
+        $image_url = !empty($_POST['image_url']) ? $_POST['image_url'] : $_POST['url'];
+        if (!preg_match('|^https?://.+$|i', $image_url)) {
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Invalid image_url'
+            ), 400);
+        }
+
+        $tmp_file = tempnam(sys_get_temp_dir(), 'api-image-');
+        $ctx = stream_context_create(array(
+            'http' => array('timeout' => 30),
+            'https' => array('timeout' => 30)
+        ));
+
+        if (!@copy($image_url, $tmp_file, $ctx)) {
+            @unlink($tmp_file);
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Cannot download image_url'
+            ), 400);
+        }
+        $original_name = basename(parse_url($image_url, PHP_URL_PATH));
+    } else {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Missing file or image_url'
+        ), 400);
+    }
+
+    $mime = fm_get_mime_type($tmp_file);
+    $extension = fm_api_image_extension($mime);
+
+    if (!$extension || !@getimagesize($tmp_file)) {
+        if (!isset($_FILES['file'])) {
+            @unlink($tmp_file);
+        }
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Only image files are allowed'
+        ), 400);
+    }
+
+    $requested_name = isset($_POST['filename']) ? $_POST['filename'] : $original_name;
+    $filename = fm_api_image_filename($requested_name, $extension);
+    $destination = fm_api_unique_path($target_dir . '/' . $filename);
+
+    if (isset($_FILES['file']) && is_uploaded_file($tmp_file)) {
+        $saved = move_uploaded_file($tmp_file, $destination);
+    } else {
+        $saved = rename($tmp_file, $destination);
+    }
+
+    if (!$saved) {
+        if (!isset($_FILES['file'])) {
+            @unlink($tmp_file);
+        }
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot save image'
+        ), 500);
+    }
+
+    $relative_path = $type_media . '/' . basename($destination);
+    fm_api_json(array(
+        'status' => 'success',
+        'type_media' => $type_media,
+        'filename' => basename($destination),
+        'path' => $relative_path,
+        'url' => rtrim($root_url, '/') . '/' . str_replace('%2F', '/', rawurlencode($relative_path)),
+        'mime' => $mime,
+        'size' => filesize($destination)
+    ));
+}
+
+function fm_api_clean_segment($value, $fallback)
+{
+    $value = strtolower(trim((string) $value));
+    $value = preg_replace('/[^a-z0-9_-]+/', '-', $value);
+    $value = trim($value, '-_');
+    return $value === '' ? $fallback : $value;
+}
+
+function fm_api_image_extension($mime)
+{
+    $map = array(
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'image/bmp' => 'bmp',
+        'image/x-ms-bmp' => 'bmp',
+        'image/svg+xml' => 'svg'
+    );
+    return isset($map[$mime]) ? $map[$mime] : false;
+}
+
+function fm_api_image_filename($filename, $extension)
+{
+    $name = pathinfo((string) $filename, PATHINFO_FILENAME);
+    $name = fm_api_clean_segment($name, 'image-' . date('YmdHis'));
+    return $name . '.' . $extension;
+}
+
+function fm_api_unique_path($path)
+{
+    if (!file_exists($path)) {
+        return $path;
+    }
+
+    $info = pathinfo($path);
+    $dir = $info['dirname'];
+    $name = $info['filename'];
+    $ext = isset($info['extension']) ? '.' . $info['extension'] : '';
+    $i = 1;
+
+    do {
+        $candidate = $dir . '/' . $name . '-' . $i . $ext;
+        $i++;
+    } while (file_exists($candidate));
+
+    return $candidate;
 }
 
 /**
