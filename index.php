@@ -1709,7 +1709,7 @@ if (isset($_GET['help'])) {
                     <div class="col-12">
                         <h6><i class="fa fa-cloud-upload"></i> Public image upload API</h6>
                         <p class="mb-2">Endpoint: <code>POST <?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image</code></p>
-                        <p class="mb-2">No login, token, or password is required. Images are saved into a folder named by <code>type_media</code>, for example <code>avatar</code>, <code>product</code>, or <code>news</code>.</p>
+                        <p class="mb-2">No login, token, or password is required. Images are saved into <code>Application/[type_media]</code>, for example <code>Application/avatar</code>, <code>Application/product</code>, or <code>Application/news</code>.</p>
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle">
                                 <thead>
@@ -1733,7 +1733,7 @@ if (isset($_GET['help'])) {
                                     <tr>
                                         <td><code>type_media</code></td>
                                         <td>No</td>
-                                        <td>Folder/type for classification. Default is <code>images</code>.</td>
+                                        <td>Folder/type for classification inside <code>Application</code>. Default is <code>images</code>.</td>
                                     </tr>
                                     <tr>
                                         <td><code>filename</code></td>
@@ -1756,8 +1756,8 @@ if (isset($_GET['help'])) {
   "status": "success",
   "type_media": "avatar",
   "filename": "photo.jpg",
-  "path": "avatar/photo.jpg",
-  "url": "<?php echo fm_enc(rtrim(FM_ROOT_URL, '/')); ?>/avatar/photo.jpg",
+  "path": "Application/avatar/photo.jpg",
+  "url": "<?php echo fm_enc(rtrim(FM_ROOT_URL, '/')); ?>/Application/avatar/photo.jpg",
   "mime": "image/jpeg",
   "size": 12345
 }</code></pre>
@@ -2694,7 +2694,15 @@ function fm_api_upload_image($root_path, $root_url)
 
     $type_media = isset($_POST['type_media']) ? $_POST['type_media'] : (isset($_POST['type']) ? $_POST['type'] : 'images');
     $type_media = fm_api_clean_segment($type_media, 'images');
-    $target_dir = $root_path . '/' . $type_media;
+    $application_dir = $root_path . '/Application';
+    $target_dir = $application_dir . '/' . $type_media;
+
+    if (!is_dir($application_dir) && !fm_mkdir($application_dir, true)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot create Application folder'
+        ), 500);
+    }
 
     if (!is_dir($target_dir) && !fm_mkdir($target_dir, true)) {
         fm_api_json(array(
@@ -2778,7 +2786,7 @@ function fm_api_upload_image($root_path, $root_url)
         ), 500);
     }
 
-    $relative_path = $type_media . '/' . basename($destination);
+    $relative_path = 'Application/' . $type_media . '/' . basename($destination);
     fm_api_json(array(
         'status' => 'success',
         'type_media' => $type_media,
