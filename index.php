@@ -331,6 +331,11 @@ if (isset($_GET['api']) && $_GET['api'] === 'upload_image') {
     fm_api_upload_image($root_path, FM_ROOT_URL);
 }
 
+// Public API: delete media uploaded through the public upload API.
+if (isset($_GET['api']) && $_GET['api'] === 'delete_media') {
+    fm_api_delete_media($root_path, FM_ROOT_URL);
+}
+
 // Checking if the user is logged in or not. If not, it will show the login form.
 if ($use_auth) {
     if (isset($_SESSION[FM_SESSION_ID]['logged'], $auth_users[$_SESSION[FM_SESSION_ID]['logged']])) {
@@ -1707,9 +1712,9 @@ if (isset($_GET['help'])) {
                 <hr>
                 <div class="row mt-3">
                     <div class="col-12">
-                        <h6><i class="fa fa-cloud-upload"></i> Public image upload API</h6>
+                        <h6><i class="fa fa-cloud-upload"></i> Public media upload API</h6>
                         <p class="mb-2">Endpoint: <code>POST <?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image</code></p>
-                        <p class="mb-2">No login, token, or password is required. Images are saved into <code>Application/[type_media]</code>, for example <code>Application/avatar</code>, <code>Application/product</code>, or <code>Application/news</code>.</p>
+                        <p class="mb-2">No login, token, or password is required. Images are saved into <code>Application/[type_media]</code>, for example <code>Application/avatar</code>, <code>Application/product</code>, or <code>Application/news</code>. Use <code>type_media=song_mp3</code> for MP3 audio files.</p>
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle">
                                 <thead>
@@ -1723,7 +1728,7 @@ if (isset($_GET['help'])) {
                                     <tr>
                                         <td><code>file</code></td>
                                         <td>No</td>
-                                        <td>Multipart image file. Use this or <code>image_url</code>.</td>
+                                        <td>Multipart image file, or MP3 when <code>type_media=song_mp3</code>. Use this or <code>image_url</code>.</td>
                                     </tr>
                                     <tr>
                                         <td><code>image_url</code></td>
@@ -1747,6 +1752,10 @@ if (isset($_GET['help'])) {
                         <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
   -F "type_media=avatar" \
   -F "file=@/path/to/photo.jpg"</code></pre>
+                        <p class="mb-1">Upload local MP3:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
+  -F "type_media=song_mp3" \
+  -F "file=@/path/to/song.mp3"</code></pre>
                         <p class="mb-1">Upload image from URL:</p>
                         <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
   -F "type_media=product" \
@@ -1759,6 +1768,62 @@ if (isset($_GET['help'])) {
   "path": "Application/avatar/photo.jpg",
   "url": "<?php echo fm_enc(rtrim(FM_ROOT_URL, '/')); ?>/Application/avatar/photo.jpg",
   "mime": "image/jpeg",
+  "size": 12345
+}</code></pre>
+                        <hr>
+                        <h6><i class="fa fa-trash"></i> Public media delete API</h6>
+                        <p class="mb-2">Endpoint: <code>POST <?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media</code></p>
+                        <p class="mb-2">No login, token, or password is required. The API only deletes files inside <code>Application/[type_media]</code>. You can delete by sending the full NAS <code>image_url</code>, or by sending both <code>type_media</code> and <code>filename</code>.</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>image_url</code></td>
+                                        <td>No</td>
+                                        <td>Full NAS media URL returned by the upload API, or a NAS path such as <code>/Application/avatar/photo.jpg</code>. Use this, <code>path</code>, or use <code>type_media</code> + <code>filename</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>path</code></td>
+                                        <td>No</td>
+                                        <td>Relative NAS path such as <code>Application/avatar/photo.jpg</code> or <code>/Application/avatar/photo.jpg</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>type_media</code></td>
+                                        <td>No</td>
+                                        <td>Folder/type inside <code>Application</code>. Required when deleting by <code>filename</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>filename</code></td>
+                                        <td>No</td>
+                                        <td>File name to delete. Required when not using <code>image_url</code>.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mb-1">Delete by URL:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media" \
+  -F "image_url=<?php echo fm_enc(rtrim(FM_ROOT_URL, '/')); ?>/Application/avatar/photo.jpg"</code></pre>
+                        <p class="mb-1">Delete by NAS path:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media" \
+  -F "path=/Application/avatar/photo.jpg"</code></pre>
+                        <p class="mb-1">Delete by type and filename:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media" \
+  -F "type_media=avatar" \
+  -F "filename=photo.jpg"</code></pre>
+                        <p class="mb-1">Successful response:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>{
+  "status": "success",
+  "type_media": "avatar",
+  "filename": "photo.jpg",
+  "path": "Application/avatar/photo.jpg",
+  "deleted": true,
   "size": 12345
 }</code></pre>
                     </div>
@@ -2694,7 +2759,7 @@ function fm_api_upload_image($root_path, $root_url)
 
     $type_media = isset($_POST['type_media']) ? $_POST['type_media'] : (isset($_POST['type']) ? $_POST['type'] : 'images');
     $type_media = fm_api_clean_segment($type_media, 'images');
-    $application_dir = $root_path . '/Application';
+    $application_dir = fm_api_application_dir($root_path);
     $target_dir = $application_dir . '/' . $type_media;
 
     if (!is_dir($application_dir) && !fm_mkdir($application_dir, true)) {
@@ -2754,9 +2819,37 @@ function fm_api_upload_image($root_path, $root_url)
     }
 
     $mime = fm_get_mime_type($tmp_file);
-    $extension = fm_api_image_extension($mime);
+    $is_song_mp3 = $type_media === 'song_mp3';
+    $is_ebook_file = $type_media === 'carrot_ebook_file';
+    if ($is_song_mp3) {
+        $extension = fm_api_audio_extension($mime, $original_name);
+    } elseif ($is_ebook_file) {
+        $extension = fm_api_ebook_extension($mime, $original_name);
+    } else {
+        $extension = fm_api_image_extension($mime);
+    }
 
-    if (!$extension || !@getimagesize($tmp_file)) {
+    if ($is_song_mp3) {
+        if (!$extension) {
+            if (!isset($_FILES['file'])) {
+                @unlink($tmp_file);
+            }
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Only MP3 audio files are allowed'
+            ), 400);
+        }
+    } elseif ($is_ebook_file) {
+        if (!$extension) {
+            if (!isset($_FILES['file'])) {
+                @unlink($tmp_file);
+            }
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Only EPUB, PDF, or text ebook files are allowed'
+            ), 400);
+        }
+    } elseif (!$extension || !@getimagesize($tmp_file)) {
         if (!isset($_FILES['file'])) {
             @unlink($tmp_file);
         }
@@ -2767,7 +2860,7 @@ function fm_api_upload_image($root_path, $root_url)
     }
 
     $requested_name = isset($_POST['filename']) ? $_POST['filename'] : $original_name;
-    $filename = fm_api_image_filename($requested_name, $extension);
+    $filename = fm_api_media_filename($requested_name, $extension, $is_song_mp3 ? 'audio-' : ($is_ebook_file ? 'ebook-' : 'image-'));
     $destination = fm_api_unique_path($target_dir . '/' . $filename);
 
     if (isset($_FILES['file']) && is_uploaded_file($tmp_file)) {
@@ -2782,7 +2875,7 @@ function fm_api_upload_image($root_path, $root_url)
         }
         fm_api_json(array(
             'status' => 'error',
-            'message' => 'Cannot save image'
+            'message' => 'Cannot save file'
         ), 500);
     }
 
@@ -2796,6 +2889,165 @@ function fm_api_upload_image($root_path, $root_url)
         'mime' => $mime,
         'size' => filesize($destination)
     ));
+}
+
+/**
+ * Public media delete API.
+ * @param string $root_path
+ * @param string $root_url
+ */
+function fm_api_delete_media($root_path, $root_url)
+{
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Use POST method'
+        ), 405);
+    }
+
+    $application_dir = fm_api_application_dir($root_path, false);
+    if (!is_dir($application_dir)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Application folder does not exist'
+        ), 404);
+    }
+
+    $resolved = fm_api_resolve_media_delete_path($application_dir, $root_url);
+    if (!$resolved) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Missing or invalid filename/image_url'
+        ), 400);
+    }
+
+    $file_path = $resolved['path'];
+    if (!is_file($file_path)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'File not found',
+            'type_media' => $resolved['type_media'],
+            'filename' => $resolved['filename'],
+            'path' => 'Application/' . $resolved['type_media'] . '/' . $resolved['filename']
+        ), 404);
+    }
+
+    $size = filesize($file_path);
+    if (!@unlink($file_path)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot delete file'
+        ), 500);
+    }
+
+    fm_api_json(array(
+        'status' => 'success',
+        'type_media' => $resolved['type_media'],
+        'filename' => $resolved['filename'],
+        'path' => 'Application/' . $resolved['type_media'] . '/' . $resolved['filename'],
+        'deleted' => true,
+        'size' => $size
+    ));
+}
+
+function fm_api_resolve_media_delete_path($application_dir, $root_url)
+{
+    $type_media = isset($_POST['type_media']) ? $_POST['type_media'] : (isset($_POST['type']) ? $_POST['type'] : '');
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $image_url = !empty($_POST['image_url']) ? $_POST['image_url'] : (!empty($_POST['url']) ? $_POST['url'] : '');
+    $media_path = !empty($_POST['path']) ? $_POST['path'] : (!empty($_POST['file_path']) ? $_POST['file_path'] : '');
+
+    if ($image_url !== '' || $media_path !== '') {
+        $path_source = $image_url !== '' ? $image_url : $media_path;
+        $path = parse_url($path_source, PHP_URL_PATH);
+        if (!$path) {
+            $path = $path_source;
+        }
+
+        $path = rawurldecode($path);
+        $root_path = parse_url($root_url, PHP_URL_PATH);
+        if ($root_path) {
+            $root_path = '/' . trim($root_path, '/');
+            if ($root_path !== '/' && strpos($path, $root_path . '/') === 0) {
+                $path = substr($path, strlen($root_path));
+            }
+        }
+
+        $path = ltrim(str_replace('\\', '/', $path), '/');
+        $application_pos = strpos($path, 'Application/');
+        if ($application_pos !== false) {
+            $path = substr($path, $application_pos);
+        }
+
+        $prefix = 'Application/';
+        if (strpos($path, $prefix) !== 0) {
+            $parts = explode('/', $path);
+            if (count($parts) >= 2 && $type_media === '') {
+                $type_media = $parts[0];
+                $filename = end($parts);
+            } else {
+                return false;
+            }
+        } else {
+            $parts = explode('/', substr($path, strlen($prefix)));
+            if (count($parts) < 2) {
+                return false;
+            }
+
+            $type_media = $parts[0];
+            $filename = end($parts);
+        }
+    }
+
+    $type_media = fm_api_clean_segment($type_media, '');
+    $filename = basename(str_replace('\\', '/', (string) $filename));
+    if ($type_media === '' || $filename === '' || $filename === '.' || $filename === '..') {
+        return false;
+    }
+
+    $file_path = $application_dir . '/' . $type_media . '/' . $filename;
+    $base_dir = realpath($application_dir . '/' . $type_media);
+    if ($base_dir === false) {
+        return false;
+    }
+
+    $base_dir = rtrim(str_replace('\\', '/', $base_dir), '/') . '/';
+    $candidate_dir = rtrim(str_replace('\\', '/', dirname($file_path)), '/') . '/';
+    if ($candidate_dir !== $base_dir) {
+        return false;
+    }
+
+    return array(
+        'path' => $file_path,
+        'type_media' => $type_media,
+        'filename' => $filename
+    );
+}
+
+function fm_api_application_dir($root_path, $create_root_if_missing = true)
+{
+    $root_path = rtrim(str_replace('\\', '/', $root_path), '/');
+    $document_application_dir = $root_path . '/Application';
+    $script_application_dir = rtrim(str_replace('\\', '/', __DIR__), '/') . '/Application';
+
+    if (!$create_root_if_missing && is_dir($script_application_dir)) {
+        return $script_application_dir;
+    }
+
+    if (is_dir($document_application_dir) || $create_root_if_missing) {
+        return $document_application_dir;
+    }
+
+    return $script_application_dir;
 }
 
 function fm_api_clean_segment($value, $fallback)
@@ -2820,10 +3072,58 @@ function fm_api_image_extension($mime)
     return isset($map[$mime]) ? $map[$mime] : false;
 }
 
-function fm_api_image_filename($filename, $extension)
+function fm_api_audio_extension($mime, $filename = '')
+{
+    $audio_mimes = array(
+        'audio/mpeg' => 'mp3',
+        'audio/mp3' => 'mp3',
+        'audio/x-mpeg' => 'mp3',
+        'audio/x-mp3' => 'mp3',
+        'audio/mpeg3' => 'mp3',
+        'audio/x-mpeg-3' => 'mp3'
+    );
+
+    if (isset($audio_mimes[$mime])) {
+        return 'mp3';
+    }
+
+    if ($mime === 'application/octet-stream' && preg_match('/\.mp3$/i', (string) $filename)) {
+        return 'mp3';
+    }
+
+    return false;
+}
+
+function fm_api_ebook_extension($mime, $filename = '')
+{
+    $ebook_mimes = array(
+        'application/epub+zip' => 'epub',
+        'application/pdf' => 'pdf',
+        'text/plain' => 'txt',
+        'text/markdown' => 'md',
+        'text/html' => 'html'
+    );
+
+    if (isset($ebook_mimes[$mime])) {
+        return $ebook_mimes[$mime];
+    }
+
+    $ext = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
+    if ($ext === 'epub' && in_array($mime, array('application/octet-stream', 'application/zip', 'application/x-zip', 'application/x-zip-compressed'), true)) {
+        return 'epub';
+    }
+
+    if (in_array($ext, array('epub', 'pdf', 'txt', 'md', 'html'), true)) {
+        return $ext;
+    }
+
+    return false;
+}
+
+function fm_api_media_filename($filename, $extension, $fallback_prefix = 'image-')
 {
     $name = pathinfo((string) $filename, PATHINFO_FILENAME);
-    $name = fm_api_clean_segment($name, 'image-' . date('YmdHis'));
+    $name = fm_api_clean_segment($name, $fallback_prefix . date('YmdHis'));
     return $name . '.' . $extension;
 }
 

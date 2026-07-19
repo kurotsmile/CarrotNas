@@ -1,0 +1,10 @@
+<IfModule mod_headers.c>
+    SetEnvIf Request_URI "^/Application/" CARROT_NAS_APPLICATION_ASSET=1
+
+    Header always set Access-Control-Allow-Origin "https://music.carrot28.com" env=CARROT_NAS_APPLICATION_ASSET
+    Header always set Access-Control-Allow-Methods "GET, HEAD, OPTIONS" env=CARROT_NAS_APPLICATION_ASSET
+    Header always set Access-Control-Allow-Headers "Range, Content-Type, Origin, Accept" env=CARROT_NAS_APPLICATION_ASSET
+    Header always set Access-Control-Expose-Headers "Accept-Ranges, Content-Range, Content-Length, Content-Type" env=CARROT_NAS_APPLICATION_ASSET
+    Header always set Vary "Origin" env=CARROT_NAS_APPLICATION_ASSET
+</IfModule>
+
