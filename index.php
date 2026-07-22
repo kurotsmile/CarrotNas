@@ -3,7 +3,7 @@
 $CONFIG = '{"lang":"en","error_reporting":false,"show_hidden":false,"hide_Cols":false,"theme":"light"}';
 
 /**
- * H3K - Tiny File Manager V2.6
+ * Carrot Nas - Tiny File Manager V2.6
  * @author CCP Programmers
  * @github https://github.com/prasathmani/tinyfilemanager
  * @link https://tinyfilemanager.github.io
@@ -152,16 +152,18 @@ if (is_readable($config_file)) {
 
 // External CDN resources that can be used in the HTML (replace for GDPR compliance)
 $external = array(
-    'css-bootstrap' => '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">',
+    'css-bootstrap' => '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">',
     'css-dropzone' => '<link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css" rel="stylesheet">',
     'css-font-awesome' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">',
     'css-highlightjs' => '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/' . $highlightjs_style . '.min.css">',
+    'css-lightgallery' => '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/css/lightgallery-bundle.min.css">',
     'js-ace' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.js"></script>',
-    'js-bootstrap' => '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>',
+    'js-bootstrap' => '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>',
     'js-dropzone' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>',
     'js-jquery' => '<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>',
     'js-jquery-datatables' => '<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js" crossorigin="anonymous" defer></script>',
     'js-highlightjs' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>',
+    'js-lightgallery' => '<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/lightgallery.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/autoplay/lg-autoplay.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/comment/lg-comment.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/fullscreen/lg-fullscreen.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/hash/lg-hash.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/rotate/lg-rotate.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/share/lg-share.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/thumbnail/lg-thumbnail.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/video/lg-video.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/lightgallery@2.9.0/plugins/zoom/lg-zoom.umd.min.js"></script>',
     'pre-jsdelivr' => '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>',
     'pre-cloudflare' => '<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin/><link rel="dns-prefetch" href="https://cdnjs.cloudflare.com"/>'
 );
@@ -324,6 +326,16 @@ if ($ip_ruleset != 'OFF') {
     }
 }
 
+// Public API: upload image from another site without login/token.
+if (isset($_GET['api']) && $_GET['api'] === 'upload_image') {
+    fm_api_upload_image($root_path, FM_ROOT_URL);
+}
+
+// Public API: delete media uploaded through the public upload API.
+if (isset($_GET['api']) && $_GET['api'] === 'delete_media') {
+    fm_api_delete_media($root_path, FM_ROOT_URL);
+}
+
 // Checking if the user is logged in or not. If not, it will show the login form.
 if ($use_auth) {
     if (isset($_SESSION[FM_SESSION_ID]['logged'], $auth_users[$_SESSION[FM_SESSION_ID]['logged']])) {
@@ -358,13 +370,7 @@ if ($use_auth) {
                                 <form class="form-signin" action="" method="post" autocomplete="off">
                                     <div class="mb-3">
                                         <div class="brand">
-                                            <svg version="1.0" xmlns="http://www.w3.org/2000/svg" M1008 width="100%" height="80px" viewBox="0 0 238.000000 140.000000" aria-label="H3K Tiny File Manager">
-                                                <g transform="translate(0.000000,140.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
-                                                    <path d="M160 700 l0 -600 110 0 110 0 0 260 0 260 70 0 70 0 0 -260 0 -260 110 0 110 0 0 600 0 600 -110 0 -110 0 0 -260 0 -260 -70 0 -70 0 0 260 0 260 -110 0 -110 0 0 -600z" />
-                                                    <path fill="#003500" d="M1008 1227 l-108 -72 0 -117 0 -118 110 0 110 0 0 110 0 110 70 0 70 0 0 -180 0 -180 -125 0 c-69 0 -125 -3 -125 -6 0 -3 23 -39 52 -80 l52 -74 73 0 73 0 0 -185 0 -185 -70 0 -70 0 0 115 0 115 -110 0 -110 0 0 -190 0 -190 181 0 181 0 109 73 108 72 1 181 0 181 -69 48 -68 49 68 50 69 49 0 249 0 248 -182 -1 -183 0 -107 -72z" />
-                                                    <path d="M1640 700 l0 -600 110 0 110 0 0 208 0 208 35 34 35 34 35 -34 35 -34 0 -208 0 -208 110 0 110 0 0 212 0 213 -87 87 -88 88 88 88 87 87 0 213 0 212 -110 0 -110 0 0 -208 0 -208 -70 -69 -70 -69 0 277 0 277 -110 0 -110 0 0 -600z" />
-                                                </g>
-                                            </svg>
+                                            <img src="carrot_28.png" alt="<?php echo fm_enc(APP_TITLE); ?>">
                                         </div>
                                         <div class="text-center">
                                             <h1 class="card-title"><?php echo APP_TITLE; ?></h1>
@@ -1359,6 +1365,12 @@ if (!empty($folders)) {
     natcasesort($folders);
 }
 
+$is_lightgallery_mode = isset($_GET['media']) && $_GET['media'] === '1';
+if ($is_lightgallery_mode) {
+    $files = array_values(array_filter($files, 'fm_is_lightgallery_media'));
+}
+$has_lightgallery_video = $is_lightgallery_mode && count(array_filter($files, 'fm_is_lightgallery_video')) > 0;
+
 // upload form
 if (isset($_GET['upload']) && !FM_READONLY) {
     fm_show_header(); // HEADER
@@ -1666,9 +1678,6 @@ if (isset($_GET['help'])) {
             <div class="card-body">
                 <div class="row">
                     <div class="col-xs-12 col-sm-6">
-                        <p>
-                        <h3><a href="https://github.com/prasathmani/tinyfilemanager" target="_blank" class="app-v-title"> Tiny File Manager <?php echo VERSION; ?></a></h3>
-                        </p>
                         <p>Author: PRAŚATH MANİ</p>
                         <p>Mail Us: <a href="mailto:ccpprogrammers@gmail.com">ccpprogrammers [at] gmail [dot] com</a> </p>
                     </div>
@@ -1698,6 +1707,125 @@ if (isset($_GET['help'])) {
                             <button type="submit" class="btn btn-success btn-sm mb-2"><?php echo lng('Generate') ?></button>
                         </form>
                         <textarea class="form-control" rows="2" readonly id="js-pwd-result"></textarea>
+                    </div>
+                </div>
+                <hr>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6><i class="fa fa-cloud-upload"></i> Public media upload API</h6>
+                        <p class="mb-2">Endpoint: <code>POST <?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image</code></p>
+                        <p class="mb-2">No login, token, or password is required. Images are saved into <code>Application/[type_media]</code>, for example <code>Application/avatar</code>, <code>Application/product</code>, or <code>Application/news</code>. Use <code>type_media=song_mp3</code> for MP3 audio files.</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>file</code></td>
+                                        <td>No</td>
+                                        <td>Multipart image file, or MP3 when <code>type_media=song_mp3</code>. Use this or <code>image_url</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>image_url</code></td>
+                                        <td>No</td>
+                                        <td>Remote image URL. Use this or <code>file</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>type_media</code></td>
+                                        <td>No</td>
+                                        <td>Folder/type for classification inside <code>Application</code>. Default is <code>images</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>filename</code></td>
+                                        <td>No</td>
+                                        <td>Custom output filename. The image extension is detected automatically.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mb-1">Upload local image:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
+  -F "type_media=avatar" \
+  -F "file=@/path/to/photo.jpg"</code></pre>
+                        <p class="mb-1">Upload local MP3:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
+  -F "type_media=song_mp3" \
+  -F "file=@/path/to/song.mp3"</code></pre>
+                        <p class="mb-1">Upload image from URL:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=upload_image" \
+  -F "type_media=product" \
+  -F "image_url=https://example.com/image.png"</code></pre>
+                        <p class="mb-1">Successful response:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>{
+  "status": "success",
+  "type_media": "avatar",
+  "filename": "photo.jpg",
+  "path": "Application/avatar/photo.jpg",
+  "url": "<?php echo fm_enc(rtrim(FM_ROOT_URL, '/')); ?>/Application/avatar/photo.jpg",
+  "mime": "image/jpeg",
+  "size": 12345
+}</code></pre>
+                        <hr>
+                        <h6><i class="fa fa-trash"></i> Public media delete API</h6>
+                        <p class="mb-2">Endpoint: <code>POST <?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media</code></p>
+                        <p class="mb-2">No login, token, or password is required. The API only deletes files inside <code>Application/[type_media]</code>. You can delete by sending the full NAS <code>image_url</code>, or by sending both <code>type_media</code> and <code>filename</code>.</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Required</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>image_url</code></td>
+                                        <td>No</td>
+                                        <td>Full NAS media URL returned by the upload API, or a NAS path such as <code>/Application/avatar/photo.jpg</code>. Use this, <code>path</code>, or use <code>type_media</code> + <code>filename</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>path</code></td>
+                                        <td>No</td>
+                                        <td>Relative NAS path such as <code>Application/avatar/photo.jpg</code> or <code>/Application/avatar/photo.jpg</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>type_media</code></td>
+                                        <td>No</td>
+                                        <td>Folder/type inside <code>Application</code>. Required when deleting by <code>filename</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>filename</code></td>
+                                        <td>No</td>
+                                        <td>File name to delete. Required when not using <code>image_url</code>.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mb-1">Delete by URL:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media" \
+  -F "image_url=<?php echo fm_enc(rtrim(FM_ROOT_URL, '/')); ?>/Application/avatar/photo.jpg"</code></pre>
+                        <p class="mb-1">Delete by NAS path:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media" \
+  -F "path=/Application/avatar/photo.jpg"</code></pre>
+                        <p class="mb-1">Delete by type and filename:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>curl -X POST "<?php echo fm_enc(FM_SELF_URL); ?>?api=delete_media" \
+  -F "type_media=avatar" \
+  -F "filename=photo.jpg"</code></pre>
+                        <p class="mb-1">Successful response:</p>
+                        <pre class="bg-body-tertiary border rounded p-2"><code>{
+  "status": "success",
+  "type_media": "avatar",
+  "filename": "photo.jpg",
+  "path": "Application/avatar/photo.jpg",
+  "deleted": true,
+  "size": 12345
+}</code></pre>
                     </div>
                 </div>
             </div>
@@ -2107,8 +2235,8 @@ $all_files_size = 0;
     <input type="hidden" name="p" value="<?php echo fm_enc(FM_PATH) ?>">
     <input type="hidden" name="group" value="1">
     <input type="hidden" name="token" value="<?php echo $_SESSION['token']; ?>">
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover table-sm" id="main-table" data-bs-theme="<?php echo FM_THEME; ?>">
+    <div class="table-responsive-sm main-table-wrap">
+        <table class="table table-bordered table-striped table-hover table-sm table-compact" id="main-table" data-bs-theme="<?php echo FM_THEME; ?>">
             <thead class="thead-white">
                 <tr>
                     <?php if (!FM_READONLY): ?>
@@ -2133,7 +2261,7 @@ $all_files_size = 0;
             ?>
                 <tr><?php if (!FM_READONLY): ?>
                         <td class="nosort"></td><?php endif; ?>
-                    <td class="border-0" data-sort><a href="?p=<?php echo urlencode($parent) ?>"><i class="fa fa-chevron-circle-left go-back"></i> ..</a></td>
+                    <td class="border-0" data-sort><a href="?p=<?php echo urlencode($parent) ?><?php echo $is_lightgallery_mode ? '&amp;media=1' : ''; ?>"><i class="fa fa-chevron-circle-left go-back"></i> ..</a></td>
                     <td class="border-0" data-order></td>
                     <td class="border-0" data-order></td>
                     <td class="border-0"></td>
@@ -2179,7 +2307,7 @@ $all_files_size = 0;
                     <?php endif; ?>
                     <td data-sort=<?php echo fm_convert_win(fm_enc($f)) ?>>
                         <div class="filename">
-                            <a href="?p=<?php echo urlencode(trim(FM_PATH . '/' . $f, '/')) ?>"><i class="<?php echo $img ?>"></i> <?php echo fm_convert_win(fm_enc($f)) ?></a>
+                            <a href="?p=<?php echo urlencode(trim(FM_PATH . '/' . $f, '/')) ?><?php echo $is_lightgallery_mode ? '&amp;media=1' : ''; ?>"><i class="<?php echo $img ?>"></i> <?php echo fm_convert_win(fm_enc($f)) ?></a>
                             <?php echo ($is_link ? ' &rarr; <i>' . readlink($path . '/' . $f) . '</i>' : '') ?>
                         </div>
                     </td>
@@ -2217,8 +2345,31 @@ $all_files_size = 0;
                 $filesize_raw = fm_get_size($path . '/' . $f);
                 $filesize = fm_get_filesize($filesize_raw);
                 $filelink = '?p=' . urlencode(FM_PATH) . '&amp;view=' . urlencode($f);
+                $file_url = FM_ROOT_URL . (FM_PATH != '' ? '/' . implode('/', array_map('rawurlencode', explode('/', FM_PATH))) : '') . '/' . rawurlencode($f);
                 $all_files_size += $filesize_raw;
                 $perms = substr(decoct(fileperms($path . '/' . $f)), -4);
+                $is_lightgallery_item = $is_lightgallery_mode && fm_is_lightgallery_media($f);
+                $lightgallery_ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                $lightgallery_video = $is_lightgallery_item && in_array($lightgallery_ext, array('mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v'));
+                $lightgallery_video_data = '';
+                $lightgallery_thumb = $file_url;
+                if ($lightgallery_video) {
+                    $lightgallery_thumb = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22%3E%3Crect width=%22320%22 height=%22180%22 fill=%22%23212529%22/%3E%3Ccircle cx=%22160%22 cy=%2290%22 r=%2238%22 fill=%22%23ffffff%22 fill-opacity=%22.9%22/%3E%3Cpath d=%22M149 68v44l38-22z%22 fill=%22%23212529%22/%3E%3C/svg%3E';
+                    $lightgallery_mime = fm_get_lightgallery_video_mime($lightgallery_ext);
+                    $lightgallery_video_data = htmlspecialchars(json_encode(array(
+                        'source' => array(array(
+                            'src' => $file_url,
+                            'type' => $lightgallery_mime
+                        )),
+                        'tracks' => array(),
+                        'attributes' => array(
+                            'preload' => false,
+                            'playsinline' => true,
+                            'controls' => true,
+                            'poster' => $lightgallery_thumb
+                        )
+                    ), JSON_UNESCAPED_SLASHES), ENT_NOQUOTES, 'UTF-8');
+                }
                 if (function_exists('posix_getpwuid') && function_exists('posix_getgrgid')) {
                     $owner = posix_getpwuid(fileowner($path . '/' . $f));
                     $group = posix_getgrgid(filegroup($path . '/' . $f));
@@ -2244,8 +2395,11 @@ $all_files_size = 0;
                     <td data-sort=<?php echo fm_enc($f) ?>>
                         <div class="filename">
                             <?php
-                            if (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
-                                <?php $imagePreview = fm_enc(FM_ROOT_URL . (FM_PATH != '' ? '/' . FM_PATH : '') . '/' . $f); ?>
+                            if ($is_lightgallery_item): ?>
+                                <a href="<?php echo $lightgallery_video ? '#' : fm_enc($file_url) ?>" class="js-lightgallery-item" data-download-url="<?php echo fm_enc($file_url) ?>" <?php echo $lightgallery_video ? 'data-poster="' . fm_enc($lightgallery_thumb) . '" data-video=\'' . $lightgallery_video_data . '\'' : ''; ?> data-sub-html="<?php echo fm_enc($f) ?>" title="<?php echo fm_enc($f) ?>">
+                                    <img src="<?php echo fm_enc($lightgallery_thumb) ?>" alt="<?php echo fm_enc($f) ?>" class="lg-inline-thumb" loading="lazy">
+                                <?php elseif (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'ico', 'svg', 'webp', 'avif'))): ?>
+                                <?php $imagePreview = fm_enc($file_url); ?>
                                 <a href="<?php echo $filelink ?>" data-preview-image="<?php echo $imagePreview ?>" title="<?php echo fm_enc($f) ?>">
                                 <?php else: ?>
                                     <a href="<?php echo $filelink ?>" title="<?php echo $f ?>">
@@ -2319,9 +2473,9 @@ $all_files_size = 0;
                     <a href="javascript:document.getElementById('a-copy').click();" class="btn btn-small btn-outline-primary btn-2"><i class="fa fa-files-o"></i> <?php echo lng('Copy') ?> </a>
                 </div>
             </div>
-            <div class="col-3 d-none d-sm-block"><a href="https://tinyfilemanager.github.io" target="_blank" class="float-right text-muted">Tiny File Manager <?php echo VERSION; ?></a></div>
+            <div class="col-3 d-none d-sm-block"></div>
         <?php else: ?>
-            <div class="col-12"><a href="https://tinyfilemanager.github.io" target="_blank" class="float-right text-muted">Tiny File Manager <?php echo VERSION; ?></a></div>
+            <div class="col-12"></div>
         <?php endif; ?>
     </div>
 </form>
@@ -2554,6 +2708,443 @@ function fm_get_mime_type($file_path)
     } else {
         return '--';
     }
+}
+
+/**
+ * Return JSON response for public API.
+ * @param array $payload
+ * @param int $status
+ */
+function fm_api_json($payload, $status = 200)
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+/**
+ * Public image upload API.
+ * @param string $root_path
+ * @param string $root_url
+ */
+function fm_api_upload_image($root_path, $root_url)
+{
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Use POST method'
+        ), 405);
+    }
+
+    $root_path = rtrim(str_replace('\\', '/', $root_path), '/');
+    if (!is_dir($root_path) || !is_writable($root_path)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Root path is not writable'
+        ), 500);
+    }
+
+    $type_media = isset($_POST['type_media']) ? $_POST['type_media'] : (isset($_POST['type']) ? $_POST['type'] : 'images');
+    $type_media = fm_api_clean_segment($type_media, 'images');
+    $application_dir = fm_api_application_dir($root_path);
+    $target_dir = $application_dir . '/' . $type_media;
+
+    if (!is_dir($application_dir) && !fm_mkdir($application_dir, true)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot create Application folder'
+        ), 500);
+    }
+
+    if (!is_dir($target_dir) && !fm_mkdir($target_dir, true)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot create type_media folder'
+        ), 500);
+    }
+
+    $tmp_file = '';
+    $original_name = '';
+
+    if (isset($_FILES['file']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
+        if (!empty($_FILES['file']['error'])) {
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Upload error code: ' . $_FILES['file']['error']
+            ), 400);
+        }
+        $tmp_file = $_FILES['file']['tmp_name'];
+        $original_name = $_FILES['file']['name'];
+    } elseif (!empty($_POST['image_url']) || !empty($_POST['url'])) {
+        $image_url = !empty($_POST['image_url']) ? $_POST['image_url'] : $_POST['url'];
+        if (!preg_match('|^https?://.+$|i', $image_url)) {
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Invalid image_url'
+            ), 400);
+        }
+
+        $tmp_file = tempnam(sys_get_temp_dir(), 'api-image-');
+        $ctx = stream_context_create(array(
+            'http' => array('timeout' => 30),
+            'https' => array('timeout' => 30)
+        ));
+
+        if (!@copy($image_url, $tmp_file, $ctx)) {
+            @unlink($tmp_file);
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Cannot download image_url'
+            ), 400);
+        }
+        $original_name = basename(parse_url($image_url, PHP_URL_PATH));
+    } else {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Missing file or image_url'
+        ), 400);
+    }
+
+    $mime = fm_get_mime_type($tmp_file);
+    $is_song_mp3 = $type_media === 'song_mp3';
+    $is_ebook_file = $type_media === 'carrot_ebook_file';
+    if ($is_song_mp3) {
+        $extension = fm_api_audio_extension($mime, $original_name);
+    } elseif ($is_ebook_file) {
+        $extension = fm_api_ebook_extension($mime, $original_name);
+    } else {
+        $extension = fm_api_image_extension($mime);
+    }
+
+    if ($is_song_mp3) {
+        if (!$extension) {
+            if (!isset($_FILES['file'])) {
+                @unlink($tmp_file);
+            }
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Only MP3 audio files are allowed'
+            ), 400);
+        }
+    } elseif ($is_ebook_file) {
+        if (!$extension) {
+            if (!isset($_FILES['file'])) {
+                @unlink($tmp_file);
+            }
+            fm_api_json(array(
+                'status' => 'error',
+                'message' => 'Only EPUB, PDF, or text ebook files are allowed'
+            ), 400);
+        }
+    } elseif (!$extension || !@getimagesize($tmp_file)) {
+        if (!isset($_FILES['file'])) {
+            @unlink($tmp_file);
+        }
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Only image files are allowed'
+        ), 400);
+    }
+
+    $requested_name = isset($_POST['filename']) ? $_POST['filename'] : $original_name;
+    $filename = fm_api_media_filename($requested_name, $extension, $is_song_mp3 ? 'audio-' : ($is_ebook_file ? 'ebook-' : 'image-'));
+    $destination = fm_api_unique_path($target_dir . '/' . $filename);
+
+    if (isset($_FILES['file']) && is_uploaded_file($tmp_file)) {
+        $saved = move_uploaded_file($tmp_file, $destination);
+    } else {
+        $saved = rename($tmp_file, $destination);
+    }
+
+    if (!$saved) {
+        if (!isset($_FILES['file'])) {
+            @unlink($tmp_file);
+        }
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot save file'
+        ), 500);
+    }
+
+    $relative_path = 'Application/' . $type_media . '/' . basename($destination);
+    fm_api_json(array(
+        'status' => 'success',
+        'type_media' => $type_media,
+        'filename' => basename($destination),
+        'path' => $relative_path,
+        'url' => rtrim($root_url, '/') . '/' . str_replace('%2F', '/', rawurlencode($relative_path)),
+        'mime' => $mime,
+        'size' => filesize($destination)
+    ));
+}
+
+/**
+ * Public media delete API.
+ * @param string $root_path
+ * @param string $root_url
+ */
+function fm_api_delete_media($root_path, $root_url)
+{
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Use POST method'
+        ), 405);
+    }
+
+    $application_dir = fm_api_application_dir($root_path, false);
+    if (!is_dir($application_dir)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Application folder does not exist'
+        ), 404);
+    }
+
+    $resolved = fm_api_resolve_media_delete_path($application_dir, $root_url);
+    if (!$resolved) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Missing or invalid filename/image_url'
+        ), 400);
+    }
+
+    $file_path = $resolved['path'];
+    if (!is_file($file_path)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'File not found',
+            'type_media' => $resolved['type_media'],
+            'filename' => $resolved['filename'],
+            'path' => 'Application/' . $resolved['type_media'] . '/' . $resolved['filename']
+        ), 404);
+    }
+
+    $size = filesize($file_path);
+    if (!@unlink($file_path)) {
+        fm_api_json(array(
+            'status' => 'error',
+            'message' => 'Cannot delete file'
+        ), 500);
+    }
+
+    fm_api_json(array(
+        'status' => 'success',
+        'type_media' => $resolved['type_media'],
+        'filename' => $resolved['filename'],
+        'path' => 'Application/' . $resolved['type_media'] . '/' . $resolved['filename'],
+        'deleted' => true,
+        'size' => $size
+    ));
+}
+
+function fm_api_resolve_media_delete_path($application_dir, $root_url)
+{
+    $type_media = isset($_POST['type_media']) ? $_POST['type_media'] : (isset($_POST['type']) ? $_POST['type'] : '');
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $image_url = !empty($_POST['image_url']) ? $_POST['image_url'] : (!empty($_POST['url']) ? $_POST['url'] : '');
+    $media_path = !empty($_POST['path']) ? $_POST['path'] : (!empty($_POST['file_path']) ? $_POST['file_path'] : '');
+
+    if ($image_url !== '' || $media_path !== '') {
+        $path_source = $image_url !== '' ? $image_url : $media_path;
+        $path = parse_url($path_source, PHP_URL_PATH);
+        if (!$path) {
+            $path = $path_source;
+        }
+
+        $path = rawurldecode($path);
+        $root_path = parse_url($root_url, PHP_URL_PATH);
+        if ($root_path) {
+            $root_path = '/' . trim($root_path, '/');
+            if ($root_path !== '/' && strpos($path, $root_path . '/') === 0) {
+                $path = substr($path, strlen($root_path));
+            }
+        }
+
+        $path = ltrim(str_replace('\\', '/', $path), '/');
+        $application_pos = strpos($path, 'Application/');
+        if ($application_pos !== false) {
+            $path = substr($path, $application_pos);
+        }
+
+        $prefix = 'Application/';
+        if (strpos($path, $prefix) !== 0) {
+            $parts = explode('/', $path);
+            if (count($parts) >= 2 && $type_media === '') {
+                $type_media = $parts[0];
+                $filename = end($parts);
+            } else {
+                return false;
+            }
+        } else {
+            $parts = explode('/', substr($path, strlen($prefix)));
+            if (count($parts) < 2) {
+                return false;
+            }
+
+            $type_media = $parts[0];
+            $filename = end($parts);
+        }
+    }
+
+    $type_media = fm_api_clean_segment($type_media, '');
+    $filename = basename(str_replace('\\', '/', (string) $filename));
+    if ($type_media === '' || $filename === '' || $filename === '.' || $filename === '..') {
+        return false;
+    }
+
+    $file_path = $application_dir . '/' . $type_media . '/' . $filename;
+    $base_dir = realpath($application_dir . '/' . $type_media);
+    if ($base_dir === false) {
+        return false;
+    }
+
+    $base_dir = rtrim(str_replace('\\', '/', $base_dir), '/') . '/';
+    $candidate_dir = rtrim(str_replace('\\', '/', dirname($file_path)), '/') . '/';
+    if ($candidate_dir !== $base_dir) {
+        return false;
+    }
+
+    return array(
+        'path' => $file_path,
+        'type_media' => $type_media,
+        'filename' => $filename
+    );
+}
+
+function fm_api_application_dir($root_path, $create_root_if_missing = true)
+{
+    $root_path = rtrim(str_replace('\\', '/', $root_path), '/');
+    $document_application_dir = $root_path . '/Application';
+    $script_application_dir = rtrim(str_replace('\\', '/', __DIR__), '/') . '/Application';
+
+    if (!$create_root_if_missing && is_dir($script_application_dir)) {
+        return $script_application_dir;
+    }
+
+    if (is_dir($document_application_dir) || $create_root_if_missing) {
+        return $document_application_dir;
+    }
+
+    return $script_application_dir;
+}
+
+function fm_api_clean_segment($value, $fallback)
+{
+    $value = strtolower(trim((string) $value));
+    $value = preg_replace('/[^a-z0-9_-]+/', '-', $value);
+    $value = trim($value, '-_');
+    return $value === '' ? $fallback : $value;
+}
+
+function fm_api_image_extension($mime)
+{
+    $map = array(
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'image/bmp' => 'bmp',
+        'image/x-ms-bmp' => 'bmp',
+        'image/svg+xml' => 'svg'
+    );
+    return isset($map[$mime]) ? $map[$mime] : false;
+}
+
+function fm_api_audio_extension($mime, $filename = '')
+{
+    $audio_mimes = array(
+        'audio/mpeg' => 'mp3',
+        'audio/mp3' => 'mp3',
+        'audio/x-mpeg' => 'mp3',
+        'audio/x-mp3' => 'mp3',
+        'audio/mpeg3' => 'mp3',
+        'audio/x-mpeg-3' => 'mp3'
+    );
+
+    if (isset($audio_mimes[$mime])) {
+        return 'mp3';
+    }
+
+    if ($mime === 'application/octet-stream' && preg_match('/\.mp3$/i', (string) $filename)) {
+        return 'mp3';
+    }
+
+    return false;
+}
+
+function fm_api_ebook_extension($mime, $filename = '')
+{
+    $ebook_mimes = array(
+        'application/epub+zip' => 'epub',
+        'application/pdf' => 'pdf',
+        'text/plain' => 'txt',
+        'text/markdown' => 'md',
+        'text/html' => 'html'
+    );
+
+    if (isset($ebook_mimes[$mime])) {
+        return $ebook_mimes[$mime];
+    }
+
+    $ext = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
+    if ($ext === 'epub' && in_array($mime, array('application/octet-stream', 'application/zip', 'application/x-zip', 'application/x-zip-compressed'), true)) {
+        return 'epub';
+    }
+
+    if (in_array($ext, array('epub', 'pdf', 'txt', 'md', 'html'), true)) {
+        return $ext;
+    }
+
+    return false;
+}
+
+function fm_api_media_filename($filename, $extension, $fallback_prefix = 'image-')
+{
+    $name = pathinfo((string) $filename, PATHINFO_FILENAME);
+    $name = fm_api_clean_segment($name, $fallback_prefix . date('YmdHis'));
+    return $name . '.' . $extension;
+}
+
+function fm_api_unique_path($path)
+{
+    if (!file_exists($path)) {
+        return $path;
+    }
+
+    $info = pathinfo($path);
+    $dir = $info['dirname'];
+    $name = $info['filename'];
+    $ext = isset($info['extension']) ? '.' . $info['extension'] : '';
+    $i = 1;
+
+    do {
+        $candidate = $dir . '/' . $name . '-' . $i . $ext;
+        $i++;
+    } while (file_exists($candidate));
+
+    return $candidate;
 }
 
 /**
@@ -2812,6 +3403,22 @@ function fm_get_zif_info($path, $ext)
 function fm_enc($text)
 {
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Prints favicon links for browsers, iOS, Android, and PWA installs.
+ */
+function fm_print_favicon_links($favicon_path)
+{
+    if ($favicon_path) {
+        echo '<link rel="icon" href="' . fm_enc($favicon_path) . '" type="image/png">' . PHP_EOL;
+    }
+    echo '<link rel="icon" type="image/x-icon" href="favicon/favicon.ico">' . PHP_EOL;
+    echo '<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">' . PHP_EOL;
+    echo '<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">' . PHP_EOL;
+    echo '<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">' . PHP_EOL;
+    echo '<link rel="manifest" href="favicon/site.webmanifest">' . PHP_EOL;
+    echo '<meta name="theme-color" content="#ffffff">' . PHP_EOL;
 }
 
 /**
@@ -3095,6 +3702,53 @@ function fm_get_image_exts()
 function fm_get_video_exts()
 {
     return array('avi', 'webm', 'wmv', 'mp4', 'm4v', 'ogm', 'ogv', 'mov', 'mkv');
+}
+
+/**
+ * Get browser/lightGallery friendly media extensions.
+ * @return array
+ */
+function fm_get_lightgallery_media_exts()
+{
+    return array('jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v');
+}
+
+/**
+ * Check whether file can be opened by lightGallery.
+ * @param string $file
+ * @return bool
+ */
+function fm_is_lightgallery_media($file)
+{
+    return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), fm_get_lightgallery_media_exts());
+}
+
+/**
+ * Check whether file is a lightGallery HTML5 video.
+ * @param string $file
+ * @return bool
+ */
+function fm_is_lightgallery_video($file)
+{
+    return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), array('mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v'));
+}
+
+/**
+ * Get MIME type for lightGallery HTML5 video sources.
+ * @param string $ext
+ * @return string
+ */
+function fm_get_lightgallery_video_mime($ext)
+{
+    $mimes = array(
+        'mp4' => 'video/mp4',
+        'm4v' => 'video/mp4',
+        'webm' => 'video/webm',
+        'ogg' => 'video/ogg',
+        'ogv' => 'video/ogg',
+        'mov' => 'video/quicktime'
+    );
+    return isset($mimes[$ext]) ? $mimes[$ext] : 'video/mp4';
 }
 
 /**
@@ -3692,6 +4346,7 @@ function fm_show_nav_path($path)
 {
     global $lang, $sticky_navbar, $editFile;
     $isStickyNavBar = $sticky_navbar ? 'fixed-top' : '';
+    $is_lightgallery_mode = isset($_GET['media']) && $_GET['media'] === '1';
 ?>
     <nav class="navbar navbar-expand-lg mb-4 main-nav <?php echo $isStickyNavBar ?> bg-body-tertiary" data-bs-theme="<?php echo FM_THEME; ?>">
         <a class="navbar-brand"> <?php echo lng('AppTitle') ?> </a>
@@ -3702,7 +4357,8 @@ function fm_show_nav_path($path)
 
             <?php
             $path = fm_clean_path($path);
-            $root_url = "<a href='?p='><i class='fa fa-home' aria-hidden='true' title='" . FM_ROOT_PATH . "'></i></a>";
+            $media_url = $is_lightgallery_mode ? '&amp;media=1' : '';
+            $root_url = "<a href='?p={$media_url}'><i class='fa fa-home' aria-hidden='true' title='" . FM_ROOT_PATH . "'></i></a>";
             $sep = '<i class="bread-crumb"> / </i>';
             if ($path != '') {
                 $exploded = explode('/', $path);
@@ -3712,7 +4368,7 @@ function fm_show_nav_path($path)
                 for ($i = 0; $i < $count; $i++) {
                     $parent = trim($parent . '/' . $exploded[$i], '/');
                     $parent_enc = urlencode($parent);
-                    $array[] = "<a href='?p={$parent_enc}'>" . fm_enc(fm_convert_win($exploded[$i])) . "</a>";
+                    $array[] = "<a href='?p={$parent_enc}{$media_url}'>" . fm_enc(fm_convert_win($exploded[$i])) . "</a>";
                 }
                 $root_url .= $sep . implode($sep, $array);
             }
@@ -3743,12 +4399,19 @@ function fm_show_nav_path($path)
                             <a title="<?php echo lng('NewItem') ?>" class="nav-link" href="#createNewItem" data-bs-toggle="modal" data-bs-target="#createNewItem"><i class="fa fa-plus-square"></i> <?php echo lng('NewItem') ?></a>
                         </li>
                     <?php endif; ?>
+                    <li class="nav-item">
+                        <?php if ($is_lightgallery_mode): ?>
+                            <a title="<?php echo lng('AllItems') ?>" class="nav-link active" href="?p=<?php echo urlencode(FM_PATH) ?>"><i class="fa fa-list"></i> <?php echo lng('AllItems') ?></a>
+                        <?php else: ?>
+                            <a title="lightGallery" class="nav-link" href="?p=<?php echo urlencode(FM_PATH) ?>&amp;media=1"><i class="fa fa-picture-o"></i> lightGallery</a>
+                        <?php endif; ?>
+                    </li>
                     <?php if (FM_USE_AUTH): ?>
                         <li class="nav-item avatar dropdown">
-                            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-5" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink-5" data-bs-toggle="dropdown" aria-expanded="false" role="button">
                                 <i class="fa fa-user-circle"></i>
                             </a>
-                            <div class="dropdown-menu text-small shadow" aria-labelledby="navbarDropdownMenuLink-5" data-bs-theme="<?php echo FM_THEME; ?>">
+                            <div class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="navbarDropdownMenuLink-5" data-bs-theme="<?php echo FM_THEME; ?>">
                                 <?php if (!FM_READONLY): ?>
                                     <a title="<?php echo lng('Settings') ?>" class="dropdown-item nav-link" href="?p=<?php echo urlencode(FM_PATH) ?>&amp;settings=1"><i class="fa fa-cog" aria-hidden="true"></i> <?php echo lng('Settings') ?></a>
                                 <?php endif ?>
@@ -3805,9 +4468,7 @@ function fm_show_header_login()
         <meta name="author" content="CCP Programmers">
         <meta name="robots" content="noindex, nofollow">
         <meta name="googlebot" content="noindex">
-        <?php if ($favicon_path) {
-            echo '<link rel="icon" href="' . fm_enc($favicon_path) . '" type="image/png">';
-        } ?>
+        <?php fm_print_favicon_links($favicon_path); ?>
         <title><?php echo fm_enc(APP_TITLE) ?></title>
         <?php print_external('pre-jsdelivr'); ?>
         <?php print_external('css-bootstrap'); ?>
@@ -3820,15 +4481,17 @@ function fm_show_header_login()
             }
 
             .fm-login-page .brand {
-                width: 121px;
-                overflow: hidden;
+                width: 237px;
+                max-width: 100%;
                 margin: 0 auto;
                 position: relative;
                 z-index: 1
             }
 
             .fm-login-page .brand img {
-                width: 100%
+                display: block;
+                width: 100%;
+                height: auto;
             }
 
             .fm-login-page .card-wrapper {
@@ -3968,14 +4631,13 @@ function fm_show_header_login()
         <meta name="author" content="CCP Programmers">
         <meta name="robots" content="noindex, nofollow">
         <meta name="googlebot" content="noindex">
-        <?php if ($favicon_path) {
-            echo '<link rel="icon" href="' . fm_enc($favicon_path) . '" type="image/png">';
-        } ?>
-        <title><?php echo fm_enc(APP_TITLE) ?> | <?php echo (isset($_GET['view']) ? $_GET['view'] : ((isset($_GET['edit'])) ? $_GET['edit'] : "H3K")); ?></title>
+        <?php fm_print_favicon_links($favicon_path); ?>
+        <title><?php echo fm_enc(APP_TITLE) ?> | <?php echo fm_enc(isset($_GET['view']) ? $_GET['view'] : ((isset($_GET['edit'])) ? $_GET['edit'] : APP_TITLE)); ?></title>
         <?php print_external('pre-jsdelivr'); ?>
         <?php print_external('pre-cloudflare'); ?>
         <?php print_external('css-bootstrap'); ?>
         <?php print_external('css-font-awesome'); ?>
+        <?php print_external('css-lightgallery'); ?>
         <?php if (FM_USE_HIGHLIGHTJS && isset($_GET['view'])): ?>
             <?php print_external('css-highlightjs'); ?>
         <?php endif; ?>
@@ -4003,8 +4665,27 @@ function fm_show_header_login()
                 background: #F7F7F7;
             }
 
+            .lg-pager-cont,
+            .lg-pager-outer {
+                display: none !important;
+            }
+
+            .lg-inline-thumb {
+                height: 1px;
+                opacity: 0;
+                pointer-events: none;
+                position: absolute;
+                width: 1px;
+            }
+
             body.navbar-fixed {
                 margin-top: 55px;
+            }
+
+            .navbar,
+            .navbar .container-fluid,
+            .navbar-collapse {
+                overflow: visible;
             }
 
             a,
@@ -4037,6 +4718,20 @@ function fm_show_header_login()
                 font-size: 13px;
             }
 
+            .nav-item.avatar .dropdown-menu {
+                min-width: 11rem;
+                z-index: 1060;
+            }
+
+            .nav-item.avatar .dropdown-item {
+                display: flex;
+                align-items: center;
+                gap: .45rem;
+                line-height: 1.25;
+                padding: .45rem .85rem;
+                white-space: nowrap;
+            }
+
             #search-addon {
                 font-size: 12px;
                 border-right-width: 0;
@@ -4061,6 +4756,7 @@ function fm_show_header_login()
 
             #main-table {
                 transition: transform .25s cubic-bezier(0.4, 0.5, 0, 1), width 0s .25s;
+                font-size: 13px;
             }
 
             #main-table .filename a {
@@ -4082,7 +4778,19 @@ function fm_show_header_login()
 
             .table-sm td,
             .table-sm th {
-                padding: .4rem;
+                padding: .3rem .45rem;
+            }
+
+            #main-table.table-compact td,
+            #main-table.table-compact th {
+                line-height: 1.25;
+            }
+
+            #main-table.table-compact .custom-checkbox-td,
+            #main-table.table-compact .custom-checkbox-header {
+                padding-left: .25rem;
+                padding-right: .25rem;
+                width: 32px;
             }
 
             .table-bordered td,
@@ -4788,11 +5496,13 @@ function fm_show_header_login()
      */
     function fm_show_footer()
     {
+        global $has_lightgallery_video;
         ?>
         </div>
         <?php print_external('js-jquery'); ?>
         <?php print_external('js-bootstrap'); ?>
         <?php print_external('js-jquery-datatables'); ?>
+        <?php print_external('js-lightgallery'); ?>
         <?php if (FM_USE_HIGHLIGHTJS && isset($_GET['view'])): ?>
             <?php print_external('js-highlightjs'); ?>
             <script>
@@ -5111,6 +5821,64 @@ function fm_show_header_login()
                         orderable: false
                     }]
                 });
+
+                if (typeof lightGallery === 'function' && $('.js-lightgallery-item').length) {
+                    var lightGalleryPlugins = [
+                        window.lgAutoplay,
+                        window.lgComment,
+                        window.lgFullscreen,
+                        window.lgHash,
+                        window.lgRotate,
+                        window.lgShare,
+                        window.lgThumbnail,
+                        <?php echo !empty($has_lightgallery_video) ? 'window.lgVideo,' : ''; ?>
+                        window.lgZoom
+                    ].filter(Boolean);
+                    lightGallery(document.getElementById('main-table'), {
+                        selector: '.js-lightgallery-item',
+                        plugins: lightGalleryPlugins,
+                        speed: 500,
+                        mode: 'lg-slide',
+                        loop: true,
+                        counter: true,
+                        controls: true,
+                        keyPress: true,
+                        mousewheel: true,
+                        closable: true,
+                        download: true,
+                        share: true,
+                        fullScreen: true,
+                        zoom: true,
+                        zoomFromOrigin: false,
+                        actualSize: true,
+                        scale: 1,
+                        enableDrag: true,
+                        enableSwipe: true,
+                        thumbnail: true,
+                        animateThumb: true,
+                        allowMediaOverlap: true,
+                        toggleThumb: true,
+                        pager: false,
+                        rotate: true,
+                        flipHorizontal: true,
+                        flipVertical: true,
+                        autoplay: true,
+                        pause: 5000,
+                        progressBar: true,
+                        hash: true,
+                        commentBox: false,
+                        videojs: false,
+                        autoplayFirstVideo: false,
+                        autoplayVideoOnSlide: false,
+                        gotoNextSlideOnVideoEnd: true,
+                        mobileSettings: {
+                            controls: true,
+                            showCloseIcon: true,
+                            download: true,
+                            rotate: true
+                        }
+                    });
+                }
 
                 // filter table
                 $('#search-addon').on('keyup', function() {
@@ -5467,6 +6235,7 @@ function fm_show_header_login()
         // English Language
         $tr['en']['AppName']        = 'Tiny File Manager';
         $tr['en']['AppTitle']       = 'File Manager';
+        $tr['en']['AllItems']       = 'All Items';
         $tr['en']['Login']          = 'Sign in';
         $tr['en']['Username']       = 'Username';
         $tr['en']['Password']       = 'Password';
